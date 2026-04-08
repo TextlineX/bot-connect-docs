@@ -143,21 +143,24 @@ const connect = () => {
   ws.onclose = (e) => { connected.value = false; log('连接关闭 ' + e.reason) }
   ws.onerror = (e) => { log('错误 ' + (e?.message || '')) }
   ws.onmessage = (e) => {
+    const ts = new Date().toLocaleTimeString()
     try {
       const data = JSON.parse(e.data)
       if (data.type === 'result') {
-        results.value.unshift({
-          ts: new Date().toLocaleTimeString(),
-          ok: data.ok,
-          detail: data.detail ?? '',
-        })
+        results.value.unshift({ ts, ok: data.ok, detail: data.detail ?? '' })
         if (results.value.length > 100) results.value.pop()
-      } else if (data.type === 'asr_text') {
-        asrTexts.value.unshift(`${new Date().toLocaleTimeString()} | ${data.text}`)
-        if (asrTexts.value.length > 200) asrTexts.value.pop()
-      } else {
-        log('收到: ' + e.data)
+        return
       }
+      if (data.type === 'asr_text') {
+        asrTexts.value.unshift(`${ts} | ${data.text}`)
+        if (asrTexts.value.length > 200) asrTexts.value.pop()
+        return
+      }
+      if (data.type === 'audio_available' || data.type === 'audio_saved') {
+        log(`收到音频: ${JSON.stringify(data)}`)
+        return
+      }
+      log('收到: ' + e.data)
     } catch (err) {
       log('收到: ' + e.data)
     }
