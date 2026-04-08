@@ -1,5 +1,8 @@
 ﻿#!/usr/bin/env python3
-# backend/asr_worker.py - 纯 Python Vosk 识别，从stdin读base64音频，stdout输出json
+# backend/asr_worker.py - persistent Vosk recognizer reading base64 audio lines from stdin
+# input JSON: {"data": <base64 pcm>, "robot_id": "..."}
+# output JSON: {"text": "...", "robot_id": "..."} or {"error": "..."}
+
 import sys, json, base64, os
 from vosk import Model, KaldiRecognizer
 
@@ -14,6 +17,7 @@ for line in sys.stdin:
     try:
         obj = json.loads(line)
         b64 = obj.get('data')
+        rid = obj.get('robot_id', '')
         if not b64:
             continue
         pcm = base64.b64decode(b64)
@@ -22,7 +26,7 @@ for line in sys.stdin:
         else:
             res = json.loads(rec.FinalResult())
         text = res.get('text', '').strip()
-        out = {"text": text}
+        out = {"text": text, "robot_id": rid}
         print(json.dumps(out), flush=True)
     except Exception as e:
         print(json.dumps({"error": str(e)}), flush=True)

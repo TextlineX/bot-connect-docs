@@ -29,6 +29,44 @@ if (modelPath) {
   console.log('[ASR] MODEL_PATH 未设置，本地识别禁用');
 }
 
+// 持久化 ASR worker
+let asrWorker = null;
+function startAsrWorker() {
+  if (!modelPath) return;
+  const workerPath = path.join(__dirname, 'asr_worker.py');
+  asrWorker = spawn(pythonBin, [workerPath], {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: { ...process.env, MODEL_PATH: modelPath },
+  });
+  asrWorker.on('error', (err) => log('asr_worker spawn error', err.message));
+  let stderrBuf = '';
+  asrWorker.stderr.on('data', c => { stderrBuf += c.toString(); });
+  asrWorker.stdout.on('data', chunk => {
+    chunk.toString().split(/\r?\n/).forEach(line => {
+      if (!line.trim()) return;
+      try {
+        const res = JSON.parse(line);
+        if (res.text) {
+          log(`asr_text(local): ${res.text}`);
+          for (const [, sock] of clients.entries()) {
+            send(sock, { type: 'asr_text', text: res.text, robot_id: res.robot_id || 'asr-local', ts: Date.now()/1000 });
+          }
+        } else if (res.error) {
+          log('asr_worker error', res.error);
+        }
+      } catch (e) {
+        log('asr_worker parse error', e.message);
+      }
+    });
+  });
+  asrWorker.on('close', (code) => {
+    if (stderrBuf) log('asr_worker stderr', stderrBuf.trim());
+    log(`asr_worker exit ${code}, respawn in 3s`);
+    setTimeout(startAsrWorker, 3000);
+  });
+}
+startAsrWorker();
+
 function log(...args) { console.log(new Date().toISOString(), ...args); }
 
 function send(ws, obj) {
@@ -108,47 +146,12 @@ function saveAudio(fromRid, data) {
       }
     }
     // 本地调用 Python Vosk 识别并广播 asr_text（需要设置 MODEL_PATH）
-    if (modelPath) {
-      runLocalAsr(fromRid, b64);
+    if (modelPath && asrWorker && asrWorker.stdin.writable) {
+      asrWorker.stdin.write(JSON.stringify({ data: b64, robot_id: fromRid }) + '\n');
     }
   } catch (e) {
     log('audio_upload error', e.message);
   }
-}
-
-function runLocalAsr(fromRid, b64) {
-  const workerPath = path.join(__dirname, 'asr_worker.py');
-  const proc = spawn(pythonBin, [workerPath], {
-    stdio: ['pipe', 'pipe', 'pipe'],
-    env: { ...process.env, MODEL_PATH: modelPath || '' },
-  });
-  proc.on('error', (err) => log('asr_worker spawn error', err.message));
-  proc.stdin.write(JSON.stringify({ data: b64 }) + '\n');
-  proc.stdin.end();
-  let stderrBuf = '';
-  proc.stderr.on('data', c => stderrBuf += c.toString());
-  proc.stdout.on('data', chunk => {
-    chunk.toString().split(/\r?\n/).forEach(line => {
-      if (!line.trim()) return;
-      try {
-        const res = JSON.parse(line);
-        if (res.text) {
-          log(`asr_text(local): ${res.text}`);
-          for (const [, sock] of clients.entries()) {
-            send(sock, { type: 'asr_text', text: res.text, robot_id: fromRid, ts: Date.now()/1000 });
-          }
-        } else if (res.error) {
-          log('asr_worker error', res.error);
-        }
-      } catch (e) {
-        log('asr_worker parse error', e.message);
-      }
-    });
-  });
-  proc.on('close', (code) => {
-    if (stderrBuf) log('asr_worker stderr', stderrBuf.trim());
-    if (code !== 0) log(`asr_worker exit code ${code}`);
-  });
 }
 
 wss.on('connection', (ws) => {
