@@ -155,7 +155,13 @@ function saveAudio(fromRid, data) {
     }
     // 本地调用 Python Vosk 识别并广播 asr_text（需要设置 MODEL_PATH）
     if (modelPath && asrWorker && asrWorker.stdin.writable) {
-      asrWorker.stdin.write(JSON.stringify({ data: b64, robot_id: fromRid }) + '\n');
+      asrWorker.stdin.write(JSON.stringify({
+        data: b64,
+        robot_id: fromRid,
+        session: payload.session || null,
+        seq: payload.seq || null,
+        final: payload.final === true
+      }) + '\n');
     }
   } catch (e) {
     log('audio_upload error', e.message);
