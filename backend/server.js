@@ -23,6 +23,11 @@ const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 const pythonBin = process.env.PYTHON_BIN || 'python';
 const modelPath = process.env.MODEL_PATH;
+if (modelPath) {
+  console.log(`[ASR] MODEL_PATH=${modelPath}, PYTHON_BIN=${pythonBin}`);
+} else {
+  console.log('[ASR] MODEL_PATH 未设置，本地识别禁用');
+}
 
 function log(...args) { console.log(new Date().toISOString(), ...args); }
 
@@ -113,9 +118,15 @@ function saveAudio(fromRid, data) {
 
 function runLocalAsr(fromRid, b64) {
   const workerPath = path.join(__dirname, 'asr_worker.py');
-  const proc = spawn(pythonBin, [workerPath], { stdio: ['pipe', 'pipe', 'inherit'] });
+  const proc = spawn(pythonBin, [workerPath], {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: { ...process.env, MODEL_PATH: modelPath || '' },
+  });
+  proc.on('error', (err) => log('asr_worker spawn error', err.message));
   proc.stdin.write(JSON.stringify({ data: b64 }) + '\n');
   proc.stdin.end();
+  let stderrBuf = '';
+  proc.stderr.on('data', c => stderrBuf += c.toString());
   proc.stdout.on('data', chunk => {
     chunk.toString().split(/\r?\n/).forEach(line => {
       if (!line.trim()) return;
@@ -133,6 +144,10 @@ function runLocalAsr(fromRid, b64) {
         log('asr_worker parse error', e.message);
       }
     });
+  });
+  proc.on('close', (code) => {
+    if (stderrBuf) log('asr_worker stderr', stderrBuf.trim());
+    if (code !== 0) log(`asr_worker exit code ${code}`);
   });
 }
 
