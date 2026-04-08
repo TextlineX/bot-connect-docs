@@ -85,10 +85,10 @@ function saveAudio(fromRid, data) {
     if (ws) {
       send(ws, { type: 'audio_saved', file: filename, size: buf.length, robot_id: fromRid });
     }
-    // 广播给其他客户端有新音频（不含数据）
+    // 广播给其他客户端有新音频（含原始数据，方便 ASR 直连使用）
     for (const [rid, sock] of clients.entries()) {
       if (rid !== fromRid) {
-        send(sock, { type: 'audio_available', file: filename, from: fromRid, ts: Date.now()/1000 });
+        send(sock, { ...data, saved_file: filename, ts: Date.now()/1000 });
       }
     }
   } catch (e) {
