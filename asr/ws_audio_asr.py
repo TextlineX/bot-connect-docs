@@ -35,7 +35,8 @@ async def main():
                             "type": "asr_text",
                             "robot_id": "asr-bridge",
                             "text": text,
-                            "ts": 0
+                            "payload": {"text": text},
+                            "ts": time.time()
                         }))
         except Exception as e:
             print("[ASR] reconnect in 3s:", e)

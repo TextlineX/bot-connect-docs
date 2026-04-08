@@ -70,6 +70,7 @@ function route(fromRid, data) {
     return;
   }
   if (data.type === 'asr_text') {
+    log(`asr_text from ${fromRid}: ${data.text || (data.payload && data.payload.text) || ''}`);
     // 广播识别结果给所有客户端
     for (const [, sock] of clients.entries()) {
       send(sock, data);
