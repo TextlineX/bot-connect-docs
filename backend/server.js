@@ -8,6 +8,8 @@
 
 require('dotenv').config();
 const WebSocket = require('ws');
+const fs = require('fs');
+const path = require('path');
 
 const HOST = process.env.WS_HOST || '0.0.0.0';
 const PORT = Number(process.env.WS_PORT || 8765);
@@ -16,6 +18,8 @@ const PING_INTERVAL = 20000; // ms
 
 // robot_id -> ws
 const clients = new Map();
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 function log(...args) { console.log(new Date().toISOString(), ...args); }
 
@@ -41,6 +45,10 @@ function unregister(ws) {
 }
 
 function route(fromRid, data) {
+  if (data.type === 'audio_upload') {
+    saveAudio(fromRid, data);
+    return;
+  }
   const target = data.target_robot;
   if (target) {
     const t = clients.get(target);
@@ -53,6 +61,40 @@ function route(fromRid, data) {
 
 const wss = new WebSocket.Server({ host: HOST, port: PORT });
 log(`WebSocket server on ws://${HOST}:${PORT}`);
+
+function saveAudio(fromRid, data) {
+  try {
+    const payload = data.payload || {};
+    const b64 = payload.data;
+    if (!b64) {
+      log('audio_upload missing data');
+      return;
+    }
+    const buf = Buffer.from(b64, 'base64');
+    const mime = (payload.mime || '').toLowerCase();
+    let ext = 'raw';
+    if (mime.includes('webm')) ext = 'webm';
+    else if (mime.includes('wav')) ext = 'wav';
+    else if (mime.includes('ogg')) ext = 'ogg';
+    const filename = `${Date.now()}_${fromRid}.${ext}`;
+    const filepath = path.join(uploadDir, filename);
+    fs.writeFileSync(filepath, buf);
+    log(`audio_upload saved ${filename} (${buf.length} bytes)`);
+    // 回发给发送方确认
+    const ws = clients.get(fromRid);
+    if (ws) {
+      send(ws, { type: 'audio_saved', file: filename, size: buf.length, robot_id: fromRid });
+    }
+    // 广播给其他客户端有新音频（不含数据）
+    for (const [rid, sock] of clients.entries()) {
+      if (rid !== fromRid) {
+        send(sock, { type: 'audio_available', file: filename, from: fromRid, ts: Date.now()/1000 });
+      }
+    }
+  } catch (e) {
+    log('audio_upload error', e.message);
+  }
+}
 
 wss.on('connection', (ws) => {
   let alive = true;
