@@ -11,7 +11,16 @@ if COMMON.as_posix() not in sys.path:
     sys.path.insert(0, COMMON.as_posix())
 
 from ws_client import WsClient
-from tts_client import send_tts, shutdown as tts_shutdown
+SIM_MODE = os.getenv('SIM_MODE', '0') == '1'
+if SIM_MODE:
+    # 纯 WS 模拟，不调用 ROS/TTS
+    def send_tts(text: str):
+        print(f"[SIM TTS] {text}")
+        return True
+    def tts_shutdown():
+        pass
+else:
+    from tts_client import send_tts, shutdown as tts_shutdown
 
 WS_URL = os.getenv('WS_URL', 'ws://127.0.0.1:8765')
 ROBOT_ID = os.getenv('ROBOT_ID', 'master-01')
