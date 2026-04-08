@@ -69,6 +69,13 @@ function route(fromRid, data) {
     saveAudio(fromRid, data);
     return;
   }
+  if (data.type === 'asr_text') {
+    // 广播识别结果给所有客户端
+    for (const [, sock] of clients.entries()) {
+      send(sock, data);
+    }
+    return;
+  }
   const target = data.target_robot;
   if (target) {
     const t = clients.get(target);
