@@ -46,13 +46,21 @@ function startAsrWorker() {
       if (!line.trim()) return;
       try {
         const res = JSON.parse(line);
-        if (res.text) {
-          log(`asr_text(local): ${res.text}`);
-          for (const [, sock] of clients.entries()) {
-            send(sock, { type: 'asr_text', text: res.text, robot_id: res.robot_id || 'asr-local', ts: Date.now()/1000 });
-          }
-        } else if (res.error) {
+        const text = (res.text || '').trim();
+        if (res.error) {
           log('asr_worker error', res.error);
+        }
+        // 无论是否有文本，都回一条 asr_text，前端可见反馈
+        const payload = {
+          type: 'asr_text',
+          text,
+          robot_id: res.robot_id || 'asr-local',
+          ts: Date.now() / 1000,
+          detail: text ? 'ok' : 'empty',
+        };
+        log(`asr_text(local): ${text || '<empty>'}`);
+        for (const [, sock] of clients.entries()) {
+          send(sock, payload);
         }
       } catch (e) {
         log('asr_worker parse error', e.message);
