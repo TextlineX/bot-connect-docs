@@ -77,27 +77,11 @@
     <!-- ASR -->
     <div class="panel" v-if="activeTab === 'ASR'">
       <div class="flex" style="justify-content: space-between; align-items: center;">
-        <div>显示来自 WS 的 asr_text</div>
+        <div>显示来自 WS 的 asr_text（由 PC 端 asr_ws.py 推送）</div>
         <button @click="asrTexts=[]">清空</button>
       </div>
       <div class="log">
         <div v-for="(t,idx) in asrTexts" :key="idx">{{ t }}</div>
-      </div>
-    </div>
-
-    <!-- 录音 -->
-    <div class="panel" v-if="activeTab === '录音'">
-      <div class="flex">
-        <button @click="startRecording" :disabled="recording">开始录音</button>
-        <button @click="stopRecording" :disabled="!recording">停止录音</button>
-        <span>{{ recording ? '录音中...' : '空闲' }}</span>
-      </div>
-      <div v-if="audioUrl" class="panel inner">
-        <audio :src="audioUrl" controls></audio>
-        <div class="flex">
-          <a :href="audioUrl" download="record.wav" class="btn-link">下载录音</a>
-          <button @click="sendAudio" :disabled="!connected">通过 WS 发送</button>
-        </div>
       </div>
     </div>
 
@@ -137,13 +121,9 @@ const logs = ref([])
 const results = ref([])
 const asrTexts = ref([])
 const connected = ref(false)
-const tabs = ['连接', '运动', 'TTS', 'ASR', '录音', '自定义', '日志']
+const tabs = ['连接', '运动', 'TTS', 'ASR', '自定义', '日志']
 const activeTab = ref('连接')
-const recording = ref(false)
-const audioChunks = ref([])
-const audioUrl = ref('')
 let ws = null
-let mediaRecorder = null
 
 const log = (msg) => {
   const time = new Date().toLocaleTimeString()
@@ -227,52 +207,4 @@ const sendCustom = () => {
   }
 }
 
-const startRecording = async () => {
-  if (!navigator.mediaDevices?.getUserMedia) {
-    log('浏览器不支持录音')
-    return
-  }
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    mediaRecorder = new MediaRecorder(stream)
-    audioChunks.value = []
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) audioChunks.value.push(e.data)
-    }
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(audioChunks.value, { type: 'audio/webm' })
-      audioUrl.value = URL.createObjectURL(blob)
-    }
-    mediaRecorder.start()
-    recording.value = true
-    log('开始录音')
-  } catch (err) {
-    log('录音失败: ' + err.message)
-  }
-}
-
-const stopRecording = () => {
-  if (mediaRecorder && recording.value) {
-    mediaRecorder.stop()
-    recording.value = false
-    log('停止录音')
-  }
-}
-
-const sendAudio = () => {
-  if (!connected.value || !audioChunks.value.length) return
-  const blob = new Blob(audioChunks.value, { type: 'audio/webm' })
-  blob.arrayBuffer().then(buf => {
-    const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
-    const msg = {
-      type: 'audio_upload',
-      robot_id: robotId.value,
-      target_robot: targetRobot.value,
-      payload: { mime: 'audio/webm', data: b64 },
-      ts: Date.now() / 1000,
-    }
-    ws.send(JSON.stringify(msg))
-    log('发送录音 (audio_upload)')
-  })
-}
 </script>
