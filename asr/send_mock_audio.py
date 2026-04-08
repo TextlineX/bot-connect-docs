@@ -1,10 +1,9 @@
 ﻿#!/usr/bin/env python3
 """
 发送已知语音样例到后端，验证 audio_upload → ASR → 前端链路。
-默认会下载 https://alphacephei.com/vosk/test.wav（16k单声道），
-转换为 raw PCM，封装 audio_upload 发送到后端。
+默认使用 GitHub 上的中文示例 wav（16k mono）。
 
-环境变量可覆盖：
+环境变量：
   WS_URL   默认 ws://192.168.31.170:8765
   ROBOT_ID 默认 mock-sender
 """
@@ -20,7 +19,7 @@ from pathlib import Path
 WS_URL = os.getenv("WS_URL", "ws://192.168.31.170:8765")
 ROBOT_ID = os.getenv("ROBOT_ID", "mock-sender")
 TEST_WAV = Path(__file__).resolve().parent / "test.wav"
-TEST_URL = "https://alphacephei.com/vosk/test.wav"
+TEST_URL = "https://raw.githubusercontent.com/alphacep/vosk-api/master/python/example/test.wav"
 
 
 def ensure_wav():
