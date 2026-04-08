@@ -11,6 +11,26 @@ const WebSocket = require('ws');
 const fs = require('fs');
 const path = require('path');
 
+// 可选：Vosk 本地 ASR
+let voskAvailable = false;
+let recognizer = null;
+const SAMPLE_RATE = 16000;
+try {
+  const vosk = require('vosk');
+  const modelPath = process.env.MODEL_PATH;
+  if (modelPath && fs.existsSync(modelPath)) {
+    vosk.setLogLevel(0);
+    const model = new vosk.Model(modelPath);
+    recognizer = new vosk.Recognizer({ model, sampleRate: SAMPLE_RATE });
+    voskAvailable = true;
+    console.log(`[Vosk] model loaded from ${modelPath}`);
+  } else {
+    console.log('[Vosk] disabled: set MODEL_PATH to enable local ASR');
+  }
+} catch (e) {
+  console.log('[Vosk] not installed (optional). npm install vosk');
+}
+
 const HOST = process.env.WS_HOST || '0.0.0.0';
 const PORT = Number(process.env.WS_PORT || 8765);
 const AUTH_TOKEN = process.env.AUTH_TOKEN || '';
@@ -89,6 +109,24 @@ function saveAudio(fromRid, data) {
     for (const [rid, sock] of clients.entries()) {
       if (rid !== fromRid) {
         send(sock, { ...data, saved_file: filename, ts: Date.now()/1000 });
+      }
+    }
+
+    // 本地直接识别并广播 asr_text（如果 Vosk 可用）
+    if (voskAvailable && recognizer) {
+      try {
+        recognizer.reset();
+        recognizer.acceptWaveform(buf);
+        const res = JSON.parse(recognizer.finalResult());
+        const text = (res.text || '').trim();
+        if (text) {
+          log(`asr_text: ${text}`);
+          for (const [, sock] of clients.entries()) {
+            send(sock, { type: 'asr_text', text, robot_id: fromRid, ts: Date.now()/1000 });
+          }
+        }
+      } catch (e) {
+        log('Vosk recognize error', e.message);
       }
     }
   } catch (e) {
