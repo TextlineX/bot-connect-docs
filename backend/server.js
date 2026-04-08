@@ -10,26 +10,7 @@ require('dotenv').config();
 const WebSocket = require('ws');
 const fs = require('fs');
 const path = require('path');
-
-// 可选：Vosk 本地 ASR
-let voskAvailable = false;
-let recognizer = null;
-const SAMPLE_RATE = 16000;
-try {
-  const vosk = require('vosk');
-  const modelPath = process.env.MODEL_PATH;
-  if (modelPath && fs.existsSync(modelPath)) {
-    vosk.setLogLevel(0);
-    const model = new vosk.Model(modelPath);
-    recognizer = new vosk.Recognizer({ model, sampleRate: SAMPLE_RATE });
-    voskAvailable = true;
-    console.log(`[Vosk] model loaded from ${modelPath}`);
-  } else {
-    console.log('[Vosk] disabled: set MODEL_PATH to enable local ASR');
-  }
-} catch (e) {
-  console.log('[Vosk] not installed (optional). npm install vosk');
-}
+const { spawn } = require('child_process');
 
 const HOST = process.env.WS_HOST || '0.0.0.0';
 const PORT = Number(process.env.WS_PORT || 8765);
@@ -40,6 +21,8 @@ const PING_INTERVAL = 20000; // ms
 const clients = new Map();
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+const pythonBin = process.env.PYTHON_BIN || 'python';
+const modelPath = process.env.MODEL_PATH;
 
 function log(...args) { console.log(new Date().toISOString(), ...args); }
 
@@ -119,27 +102,38 @@ function saveAudio(fromRid, data) {
         send(sock, { ...data, saved_file: filename, ts: Date.now()/1000 });
       }
     }
-
-    // 本地直接识别并广播 asr_text（如果 Vosk 可用）
-    if (voskAvailable && recognizer) {
-      try {
-        recognizer.reset();
-        recognizer.acceptWaveform(buf);
-        const res = JSON.parse(recognizer.finalResult());
-        const text = (res.text || '').trim();
-        if (text) {
-          log(`asr_text: ${text}`);
-          for (const [, sock] of clients.entries()) {
-            send(sock, { type: 'asr_text', text, robot_id: fromRid, ts: Date.now()/1000 });
-          }
-        }
-      } catch (e) {
-        log('Vosk recognize error', e.message);
-      }
+    // 本地调用 Python Vosk 识别并广播 asr_text（需要设置 MODEL_PATH）
+    if (modelPath) {
+      runLocalAsr(fromRid, b64);
     }
   } catch (e) {
     log('audio_upload error', e.message);
   }
+}
+
+function runLocalAsr(fromRid, b64) {
+  const workerPath = path.join(__dirname, 'asr_worker.py');
+  const proc = spawn(pythonBin, [workerPath], { stdio: ['pipe', 'pipe', 'inherit'] });
+  proc.stdin.write(JSON.stringify({ data: b64 }) + '\n');
+  proc.stdin.end();
+  proc.stdout.on('data', chunk => {
+    chunk.toString().split(/\r?\n/).forEach(line => {
+      if (!line.trim()) return;
+      try {
+        const res = JSON.parse(line);
+        if (res.text) {
+          log(`asr_text(local): ${res.text}`);
+          for (const [, sock] of clients.entries()) {
+            send(sock, { type: 'asr_text', text: res.text, robot_id: fromRid, ts: Date.now()/1000 });
+          }
+        } else if (res.error) {
+          log('asr_worker error', res.error);
+        }
+      } catch (e) {
+        log('asr_worker parse error', e.message);
+      }
+    });
+  });
 }
 
 wss.on('connection', (ws) => {
