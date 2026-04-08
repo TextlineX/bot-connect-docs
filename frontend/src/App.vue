@@ -2,7 +2,17 @@
   <div class="app-shell">
     <h1>Bot Connect 控制台</h1>
 
-    <div class="panel">
+    <div class="tabs">
+      <button
+        v-for="tab in tabs"
+        :key="tab"
+        :class="['tab', { active: activeTab === tab }]"
+        @click="activeTab = tab"
+      >{{ tab }}</button>
+    </div>
+
+    <!-- 连接 -->
+    <div class="panel" v-if="activeTab === '连接'">
       <div class="row">
         <div>
           <label>WebSocket 地址</label>
@@ -26,7 +36,8 @@
       </div>
     </div>
 
-    <div class="panel">
+    <!-- 运动控制 -->
+    <div class="panel" v-if="activeTab === '运动'">
       <div class="row">
         <div>
           <label>线速度</label>
@@ -42,7 +53,8 @@
       </div>
     </div>
 
-    <div class="panel">
+    <!-- TTS -->
+    <div class="panel" v-if="activeTab === 'TTS'">
       <div class="row">
         <div>
           <label>TTS 文本</label>
@@ -52,9 +64,45 @@
       <div class="flex" style="margin-top:12px;">
         <button @click="sendTts" :disabled="!connected">发送 TTS</button>
       </div>
+      <div class="panel inner">
+        <strong>结果回执</strong>
+        <div class="log slim">
+          <div v-for="(r,idx) in results" :key="idx">
+            {{ r.ts }} | {{ r.detail }} | ok={{ r.ok }}
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="panel">
+    <!-- ASR -->
+    <div class="panel" v-if="activeTab === 'ASR'">
+      <div class="flex" style="justify-content: space-between; align-items: center;">
+        <div>显示来自 WS 的 asr_text</div>
+        <button @click="asrTexts=[]">清空</button>
+      </div>
+      <div class="log">
+        <div v-for="(t,idx) in asrTexts" :key="idx">{{ t }}</div>
+      </div>
+    </div>
+
+    <!-- 录音 -->
+    <div class="panel" v-if="activeTab === '录音'">
+      <div class="flex">
+        <button @click="startRecording" :disabled="recording">开始录音</button>
+        <button @click="stopRecording" :disabled="!recording">停止录音</button>
+        <span>{{ recording ? '录音中...' : '空闲' }}</span>
+      </div>
+      <div v-if="audioUrl" class="panel inner">
+        <audio :src="audioUrl" controls></audio>
+        <div class="flex">
+          <a :href="audioUrl" download="record.wav" class="btn-link">下载录音</a>
+          <button @click="sendAudio" :disabled="!connected">通过 WS 发送</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 自定义 -->
+    <div class="panel" v-if="activeTab === '自定义'">
       <label>自定义 JSON</label>
       <textarea rows="5" v-model="customJson"></textarea>
       <div class="flex" style="margin-top:8px;">
@@ -62,7 +110,8 @@
       </div>
     </div>
 
-    <div class="panel">
+    <!-- 日志 -->
+    <div class="panel" v-if="activeTab === '日志'">
       <div class="flex" style="justify-content: space-between;">
         <strong>日志</strong>
         <button @click="logs=[]">清空</button>
@@ -85,8 +134,16 @@ const angular = ref(0.1)
 const ttsText = ref('你好，我是主机。')
 const customJson = ref('{\n  "type": "ping",\n  "robot_id": "controller",\n  "ts": 0\n}')
 const logs = ref([])
+const results = ref([])
+const asrTexts = ref([])
 const connected = ref(false)
+const tabs = ['连接', '运动', 'TTS', 'ASR', '录音', '自定义', '日志']
+const activeTab = ref('连接')
+const recording = ref(false)
+const audioChunks = ref([])
+const audioUrl = ref('')
 let ws = null
+let mediaRecorder = null
 
 const log = (msg) => {
   const time = new Date().toLocaleTimeString()
@@ -105,7 +162,26 @@ const connect = () => {
   }
   ws.onclose = (e) => { connected.value = false; log('连接关闭 ' + e.reason) }
   ws.onerror = (e) => { log('错误 ' + (e?.message || '')) }
-  ws.onmessage = (e) => { log('收到: ' + e.data) }
+  ws.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data)
+      if (data.type === 'result') {
+        results.value.unshift({
+          ts: new Date().toLocaleTimeString(),
+          ok: data.ok,
+          detail: data.detail ?? '',
+        })
+        if (results.value.length > 100) results.value.pop()
+      } else if (data.type === 'asr_text') {
+        asrTexts.value.unshift(`${new Date().toLocaleTimeString()} | ${data.text}`)
+        if (asrTexts.value.length > 200) asrTexts.value.pop()
+      } else {
+        log('收到: ' + e.data)
+      }
+    } catch (err) {
+      log('收到: ' + e.data)
+    }
+  }
 }
 
 const disconnect = () => {
@@ -149,5 +225,54 @@ const sendCustom = () => {
   } catch (e) {
     log('JSON 解析失败: ' + e.message)
   }
+}
+
+const startRecording = async () => {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    log('浏览器不支持录音')
+    return
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    mediaRecorder = new MediaRecorder(stream)
+    audioChunks.value = []
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.value.push(e.data)
+    }
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks.value, { type: 'audio/webm' })
+      audioUrl.value = URL.createObjectURL(blob)
+    }
+    mediaRecorder.start()
+    recording.value = true
+    log('开始录音')
+  } catch (err) {
+    log('录音失败: ' + err.message)
+  }
+}
+
+const stopRecording = () => {
+  if (mediaRecorder && recording.value) {
+    mediaRecorder.stop()
+    recording.value = false
+    log('停止录音')
+  }
+}
+
+const sendAudio = () => {
+  if (!connected.value || !audioChunks.value.length) return
+  const blob = new Blob(audioChunks.value, { type: 'audio/webm' })
+  blob.arrayBuffer().then(buf => {
+    const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
+    const msg = {
+      type: 'audio_upload',
+      robot_id: robotId.value,
+      target_robot: targetRobot.value,
+      payload: { mime: 'audio/webm', data: b64 },
+      ts: Date.now() / 1000,
+    }
+    ws.send(JSON.stringify(msg))
+    log('发送录音 (audio_upload)')
+  })
 }
 </script>

@@ -1,31 +1,15 @@
 ﻿#!/usr/bin/env python3
 """
-ASR -> TTS 回声脚本（运行在 PC，连接机器人 rosbridge）
-- 订阅 /aima/hal/audio/capture (aimdk_msgs/msg/AudioCapture)，提取 PCM
-- Vosk 识别文本，发布到 /asr/text (std_msgs/String)
-- 可选：将识别文本调用 PlayTts 服务播报（设置 ENABLE_TTS=1）
-
-环境变量：
-  ROSBRIDGE_IP   默认 192.168.1.1
-  ROSBRIDGE_PORT 默认 9090
-  MODEL_PATH     必填，指向 Vosk 模型目录（含 conf/model files）
-  AUDIO_TOPIC    默认 /aima/hal/audio/capture
-  SR             默认 16000 (采样率)
-  ENABLE_TTS     默认 0；设为 1 则调用 PlayTts 服务回声
-  TTS_SERVICE    默认 /aimdk_5Fmsgs/srv/PlayTts
-
-依赖安装（PC）：
-  pip install -r asr/requirements.txt
-模型示例：
-  mkdir -p ~/models && cd ~/models
-  # 下载并解压 vosk-model-small-cn-0.22.zip -> ~/models/vosk
-
-运行：
-  python asr/asr_ws.py
+ASR -> TTS 回声 + 可选推送到 WebSocket 后端（前端显示 asr_text）
+环境变量新增：
+  WS_URL      默认空；如设为 ws://<PC_IP>:8765 则推送 asr_text
+  WS_ROBOT_ID 默认 asr-bridge
 """
 import os
 import json
 import roslibpy
+import websockets
+import asyncio
 from vosk import Model, KaldiRecognizer
 
 ROSBRIDGE_IP = os.getenv('ROSBRIDGE_IP', '192.168.1.1')
@@ -35,13 +19,17 @@ AUDIO_TOPIC = os.getenv('AUDIO_TOPIC', '/aima/hal/audio/capture')
 SR = int(os.getenv('SR', '16000'))
 ENABLE_TTS = os.getenv('ENABLE_TTS', '0') == '1'
 TTS_SERVICE = os.getenv('TTS_SERVICE', '/aimdk_5Fmsgs/srv/PlayTts')
+WS_URL = os.getenv('WS_URL', '')
+WS_ROBOT_ID = os.getenv('WS_ROBOT_ID', 'asr-bridge')
 
 if not MODEL_PATH:
     raise SystemExit('请设置 MODEL_PATH 指向 Vosk 模型目录')
 
-print(f"[ASR] connect rosbridge ws://{ROSBRIDGE_IP}:{ROSBRIDGE_PORT}")
+print(f"[ASR] rosbridge ws://{ROSBRIDGE_IP}:{ROSBRIDGE_PORT}")
 print(f"[ASR] model: {MODEL_PATH}")
 print(f"[ASR] audio topic: {AUDIO_TOPIC}, sr={SR}, TTS={ENABLE_TTS}")
+if WS_URL:
+    print(f"[ASR] push asr_text -> {WS_URL}")
 
 model = Model(MODEL_PATH)
 rec = KaldiRecognizer(model, SR)
@@ -51,6 +39,35 @@ client.run()
 
 pub_text = roslibpy.Topic(client, '/asr/text', 'std_msgs/String')
 sub_audio = roslibpy.Topic(client, AUDIO_TOPIC, 'aimdk_msgs/msg/AudioCapture')
+
+# ---------- 可选 WebSocket 推送 ----------
+ws_conn = None
+async def ws_loop():
+    global ws_conn
+    if not WS_URL:
+        return
+    while True:
+        try:
+            async with websockets.connect(WS_URL, ping_interval=20, ping_timeout=20) as ws:
+                ws_conn = ws
+                hello = { 'type': 'hello', 'robot_id': WS_ROBOT_ID, 'ts': 0 }
+                await ws.send(json.dumps(hello))
+                await asyncio.Future()  # 保持连接
+        except Exception as e:
+            print('[ASR][WS] reconnect in 3s', e)
+            await asyncio.sleep(3)
+
+asyncio.get_event_loop().create_task(ws_loop())
+
+async def push_ws_text(text: str):
+    if ws_conn and WS_URL:
+        try:
+            msg = { 'type': 'asr_text', 'text': text, 'robot_id': WS_ROBOT_ID, 'ts': 0 }
+            await ws_conn.send(json.dumps(msg))
+        except Exception as e:
+            print('[ASR][WS] send err', e)
+
+# ---------- TTS 调用 ----------
 
 def call_tts(text: str):
     service = roslibpy.Service(client, TTS_SERVICE, 'aimdk_msgs/srv/PlayTts')
@@ -71,6 +88,7 @@ def call_tts(text: str):
     except Exception as e:
         print('[TTS] error', e)
 
+# ---------- 音频回调 ----------
 
 def pcm_from(msg: dict) -> bytes:
     for k in ('data', 'pcm', 'audio'):
@@ -80,7 +98,6 @@ def pcm_from(msg: dict) -> bytes:
             except Exception:
                 pass
     return b''
-
 
 def on_audio(msg):
     pcm = pcm_from(msg)
@@ -96,6 +113,8 @@ def on_audio(msg):
         print('[ASR]', text)
         if ENABLE_TTS:
             call_tts(text)
+        if WS_URL:
+            asyncio.get_event_loop().create_task(push_ws_text(text))
 
 sub_audio.subscribe(on_audio)
 print('[ASR] started, press Ctrl+C to exit')
