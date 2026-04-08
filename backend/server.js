@@ -10,7 +10,7 @@ require('dotenv').config();
 const WebSocket = require('ws');
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 
 const HOST = process.env.WS_HOST || '0.0.0.0';
 const PORT = Number(process.env.WS_PORT || 8765);
@@ -22,6 +22,7 @@ const clients = new Map();
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 const pythonBin = process.env.PYTHON_BIN || 'python';
+const ffmpegBin = process.env.FFMPEG_BIN || 'ffmpeg';
 const modelPath = process.env.MODEL_PATH;
 if (modelPath) {
   console.log(`[ASR] MODEL_PATH=${modelPath}, PYTHON_BIN=${pythonBin}`);
@@ -101,14 +102,18 @@ function unregister(ws) {
 function route(fromRid, data) {
   if (data.type === 'audio_upload') {
     saveAudio(fromRid, data);
+    forwardAudioChunks(fromRid, data);
     return;
   }
   if (data.type === 'asr_text') {
-    log(`asr_text from ${fromRid}: ${data.text || (data.payload && data.payload.text) || ''}`);
-    // 广播识别结果给所有客户端
-    for (const [, sock] of clients.entries()) {
-      send(sock, data);
+    const text = data.text || (data.payload && data.payload.text) || '';
+    if (!text || !text.trim()) {
+      // 空文本不广播，避免覆盖有效结果
+      log(`asr_text from ${fromRid} skipped (empty)`);
+      return;
     }
+    log(`asr_text from ${fromRid}: ${text}`);
+    for (const [, sock] of clients.entries()) send(sock, data);
     return;
   }
   const target = data.target_robot;
@@ -118,6 +123,30 @@ function route(fromRid, data) {
     else log(`target ${target} offline, drop ${data.type}`);
   } else {
     log(`recv ${fromRid}: ${data.type}`);
+  }
+}
+
+// 将 audio_upload 切块转发，避免 WS 帧超限
+function forwardAudioChunks(fromRid, data) {
+  const target = data.target_robot || 'master-01';
+  const sock = clients.get(target);
+  if (!sock) {
+    log(`target ${target} offline, drop audio_upload`);
+    return;
+  }
+  const payload = data.payload || {};
+  const b64 = payload.data || '';
+  const mime = payload.mime || 'audio/webm';
+  const max = 512 * 1024; // base64 chunk size (~512KB)
+  for (let i = 0; i < b64.length; i += max) {
+    const chunk = b64.slice(i, i + max);
+    send(sock, {
+      type: 'audio_upload',
+      robot_id: fromRid,
+      target_robot: target,
+      payload: { mime, data: chunk },
+      ts: Date.now() / 1000,
+    });
   }
 }
 
@@ -155,16 +184,52 @@ function saveAudio(fromRid, data) {
     }
     // 本地调用 Python Vosk 识别并广播 asr_text（需要设置 MODEL_PATH）
     if (modelPath && asrWorker && asrWorker.stdin.writable) {
-      asrWorker.stdin.write(JSON.stringify({
-        data: b64,
-        robot_id: fromRid,
-        session: payload.session || null,
-        seq: payload.seq || null,
-        final: payload.final === true
-      }) + '\n');
+      // 将压缩音频转成 16k mono s16le，再送给 Vosk
+      const pcmB64 = transcodeToPcm(b64, mime);
+      if (pcmB64) {
+        const pcmLen = Buffer.from(pcmB64, 'base64').length;
+        log(`asr_worker pcm bytes=${pcmLen} (from ${buf.length} bytes ${mime || 'unknown'})`);
+        asrWorker.stdin.write(JSON.stringify({
+          data: pcmB64,
+          robot_id: fromRid,
+          session: payload.session || null,
+          seq: payload.seq || null,
+          // 单块或明确标记 final 的视为最终结果，触发 FinalResult
+          final: payload.final === true || buf.length < 1024 * 1024
+        }) + '\n');
+      } else {
+        log('asr_worker transcode failed, skip');
+      }
     }
   } catch (e) {
     log('audio_upload error', e.message);
+  }
+}
+
+// 将任意音频 Base64 转 16k mono s16le Base64。若已是 raw/pcm 直接返回原始。
+function transcodeToPcm(b64, mime = '') {
+  try {
+    mime = mime.toLowerCase();
+    if (mime.startsWith('audio/raw') || mime.startsWith('audio/pcm') || mime.includes('s16_le')) {
+      return b64;
+    }
+    const buf = Buffer.from(b64, 'base64');
+    const r = spawnSync(ffmpegBin, [
+      '-y',
+      '-i', 'pipe:0',
+      '-f', 's16le',
+      '-acodec', 'pcm_s16le',
+      '-ar', '16000',
+      '-ac', '1',
+      'pipe:1'
+    ], { input: buf, maxBuffer: 20 * 1024 * 1024 });
+    if (r.status === 0 && r.stdout && r.stdout.length) {
+      return r.stdout.toString('base64');
+    }
+    return null;
+  } catch (e) {
+    log('transcode error', e.message);
+    return null;
   }
 }
 

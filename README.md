@@ -19,15 +19,31 @@
 ---
 ## 前后端栈与启动
 
-### 后端 (Node)
+### 后端 (Node + 本地 Vosk ASR)
 - 位置：backend/
-- 启动：
+- 依赖：`npm install`（首次）
+- 运行：
   ```powershell
   cd H:\Project\Bot\bot_connect\backend
-  npm install
-  node server.js   # 监听 ws://0.0.0.0:8765
+  set MODEL_PATH=H:\models\vosk-model-small-cn-0.22    # 必填，Vosk 模型目录
+  set PYTHON_BIN=C:\Python314\python.exe               # 可选，默认 python
+  node server.js                                       # 监听 ws://0.0.0.0:8765
   ```
-- 环境变量：WS_HOST/WS_PORT/AUTH_TOKEN（可选）。
+- 需要本机可用 `ffmpeg`（用于 webm/mp3/ogg 等转码）。  
+- WS_HOST / WS_PORT / AUTH_TOKEN 可选。
+- 行为：保存上传音频 -> ffmpeg 转 16k mono PCM -> 调用 Vosk -> 广播 asr_text（空文本已过滤）。
+
+#### 快速单文件测试
+```powershell
+set WS_URL=ws://192.168.31.170:8765
+set ROBOT_ID=controller
+python scripts\send_audio_ws.py test.wav   # 本地直连 WS 发送音频
+```
+或离线校验文件能否被识别：
+```powershell
+set MODEL_PATH=H:\models\vosk-model-small-cn-0.22
+python scripts\test_asr_file.py backend\uploads\xxxx.raw --mime audio/pcm
+```
 
 ### 前端 (Vue + Vite)
 - 位置：frontend/
@@ -38,7 +54,7 @@
   npm run dev -- --host --port 5173
   ```
 - 浏览器：`http://<PC_IP>:5173`，WS 地址填 `ws://<PC_IP>:8765`。
-- 功能：发送 cmd_vel、发送 TTS（action: tts），日志显示 result 回调。
+- 功能：发送 cmd_vel、TTS，上传/录音推送音频，查看 asr_text/日志。
 
 ---
 ## 机器人主机端
@@ -56,15 +72,22 @@ pip install websockets   # 如未装
   - 处理 exec.action==tts，调用 PlayTts（默认服务名 `/aimdk_5Fmsgs/srv/PlayTts`）；
     将结果通过 `type: result` 回送前端。
 - 运行：
-  ```bash
-  cd /agibot/data/home/agi/bot_connect/master
-  source /opt/ros/humble/setup.bash
-  source /agibot/data/home/agi/aimdk/install/setup.bash
-  export WS_URL=ws://<PC_IP>:8765
+```bash
+cd /agibot/data/home/agi/bot_connect/master
+source /opt/ros/humble/setup.bash
+source /agibot/data/home/agi/aimdk/install/setup.bash
+export WS_URL=ws://<PC_IP>:8765
   export ROBOT_ID=master-01
   export TTS_SERVICE=/aimdk_5Fmsgs/srv/PlayTts  # 如服务名不同替换
-  python client.py
-  ```
+python client.py
+```
+
+### Windows 一键模拟（仅 WS，不调用 ROS/TTS）
+```powershell
+cd H:\Project\Bot\bot_connect
+.\scripts\start_master_sim.ps1   # 默认 WS_URL=ws://192.168.31.170:8765, ROBOT_ID=master-01
+```
+（需按需修改脚本里的默认地址）
 
 ### 通用模块 (common)
 - ws_client.py：WebSocket 客户端封装。

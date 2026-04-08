@@ -1,40 +1,55 @@
-﻿# 主机示例：把收到的 cmd_vel / tts 映射到 SDK，占位运动+真实 TTS 服务
-import os
-import time
-import sys
-import asyncio
+﻿#!/usr/bin/env python3
+# 主机客户端：自动检测 ROS/TTS；不可用则退化为模拟模式
+import os, time, sys, asyncio, json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 COMMON = ROOT / "common"
+HANDLERS = ROOT / "master" / "handlers"
 if COMMON.as_posix() not in sys.path:
     sys.path.insert(0, COMMON.as_posix())
+if HANDLERS.as_posix() not in sys.path:
+    sys.path.insert(0, HANDLERS.as_posix())
 
 from ws_client import WsClient
+
 SIM_MODE = os.getenv('SIM_MODE', '0') == '1'
+send_tts = None
+tts_shutdown = None
+
+if not SIM_MODE:
+    try:
+        from tts_client import send_tts, shutdown as tts_shutdown  # type: ignore
+        print("[master] ROS/TTS 模式")
+    except Exception as e:
+        print(f"[master] ROS/TTS 不可用，切换模拟模式: {e}")
+        SIM_MODE = True
+
 if SIM_MODE:
-    # 纯 WS 模拟，不调用 ROS/TTS
+    print("[master] SIM 模式（仅 WS，不调用 ROS/TTS）")
     def send_tts(text: str):
         print(f"[SIM TTS] {text}")
         return True
     def tts_shutdown():
         pass
-else:
-    from tts_client import send_tts, shutdown as tts_shutdown
 
 WS_URL = os.getenv('WS_URL', 'ws://127.0.0.1:8765')
 ROBOT_ID = os.getenv('ROBOT_ID', 'master-01')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
-# 占位运动接口（需要时换成真实 SDK）
 class RobotSDK:
     def set_velocity(self, linear: float, angular: float):
         print(f"[MASTER SDK] set_velocity linear={linear} angular={angular}")
-
     def status(self):
         return {'ts': time.time()}
 
 sdk = RobotSDK()
+
+async def on_exec(ws, data):
+    payload = data.get('payload', {})
+    if payload.get('action') == 'tts':
+        text = payload.get('text', '') or '你好，我是灵犀。'
+        send_tts(text)
 
 
 def on_cmd(data):
@@ -42,26 +57,48 @@ def on_cmd(data):
     sdk.set_velocity(p.get('linear', 0), p.get('angular', 0))
 
 
-def on_exec(data):
-    payload = data.get('payload', {})
-    if payload.get('action') == 'tts':
-        text = payload.get('text', '') or '你好，我是灵犀。'
-        send_tts(text)
-
-
 def status_provider():
     return {'role': 'master', **sdk.status()}
 
 
-def main():
+async def main_async():
     client = WsClient(ROBOT_ID, WS_URL, AUTH_TOKEN,
-                      on_cmd=on_cmd, on_exec=on_exec,
+                      on_cmd=on_cmd,
                       status_provider=status_provider)
+    orig_handle = client.handle_message
+    # 延迟导入，便于拆分技能
     try:
-        asyncio.run(client.run())
+        from audio_upload_handler import handle_audio_upload
+    except Exception:
+        handle_audio_upload = None
+
+    async def wrapped_handle(ws, data):
+        if data.get('type') == 'exec':
+            await on_exec(ws, data)
+        elif data.get('type') == 'audio_upload' and handle_audio_upload:
+            # 将音频交给主机解析后回传 asr_text
+            text = await handle_audio_upload(data)
+            reply = {
+                "type": "asr_text",
+                "robot_id": ROBOT_ID,
+                "ts": time.time(),
+                "text": text or "",
+                "detail": "from master/audio_upload"
+            }
+            try:
+                await ws.send(json.dumps(reply))
+            except Exception:
+                pass
+        else:
+            await orig_handle(ws, data)
+    client.handle_message = wrapped_handle
+    try:
+        await client.run()
     finally:
         tts_shutdown()
 
+def main():
+    asyncio.run(main_async())
 
 if __name__ == '__main__':
     main()

@@ -24,10 +24,15 @@ for line in sys.stdin:
         if not b64:
             continue
         pcm = base64.b64decode(b64)
-        if rec.AcceptWaveform(pcm):
-            res = json.loads(rec.Result())
-        else:
+        accepted = rec.AcceptWaveform(pcm)
+        if final:
             res = json.loads(rec.FinalResult())
+            rec.Reset()
+        else:
+            if accepted:
+                res = json.loads(rec.Result())
+            else:
+                res = json.loads(rec.PartialResult())
         text = res.get('text', '').strip()
         out = {"text": text, "robot_id": rid, "session": session, "seq": seq, "final": final}
         print(json.dumps(out), flush=True)

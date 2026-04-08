@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>x2_bot</name>
+  <version>0.0.0</version>
+  <description>Custom skills for X2 master/slave (audio, TTS, actions). Skeleton placeholder.</description>
+  <maintainer email="todo@todo.com">x2</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+  <build_depend>rclpy</build_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>aimdk_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
