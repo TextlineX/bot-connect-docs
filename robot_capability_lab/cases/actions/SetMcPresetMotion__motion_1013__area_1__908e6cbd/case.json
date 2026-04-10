@@ -1,0 +1,34 @@
+{
+  "id": "preset_action:左手敬礼",
+  "kind": "preset_action",
+  "name": "左手敬礼",
+  "data_type": "SetMcPresetMotion",
+  "category": "motion",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+      "section": "预设动作定义",
+      "description": "同上"
+    }
+  ],
+  "motion_id": 1013,
+  "area_id": 1,
+  "project_status": "implemented",
+  "project_bindings": [
+    {
+      "id": "master.preset.salute.left",
+      "kind": "preset_action",
+      "interface_name": "左手敬礼",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    }
+  ],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

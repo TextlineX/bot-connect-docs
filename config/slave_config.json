@@ -1,0 +1,8 @@
+{
+  "robot_id": "slave-01",
+  "config_version": 4,
+  "routing": {
+    "brain_robot_id": "master-01",
+    "control_robot_id": "slave-01"
+  }
+}

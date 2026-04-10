@@ -1,0 +1,31 @@
+# service 测试项
+
+- 名称: `/aimdk_5Fmsgs/srv/LedStripCommand`
+- 分类: `lights`
+- 类型: `LedStripCommand`
+- 文档状态: `已文档化`
+- 项目状态: `not_connected`
+
+## 文档来源
+
+- `知识库/官方/5_interface/interactor/lights.md` | 灯带控制服务
+- `知识库/官方/5_interface/interactor/lights.md` | 服务名称: /aimdk_5Fmsgs/srv/LedStripCommand
+
+## 推荐命令
+
+```bash
+ros2 service type /aimdk_5Fmsgs/srv/LedStripCommand
+ros2 interface show LedStripCommand
+# 默认只查类型和结构，真实调用前先确认安全
+```
+
+## 测试记录
+
+- 首次验证时间: 
+- 机器人环境: 
+- 是否存在: 
+- 实际类型: 
+- QoS / 频率: 
+- 样本是否拿到: 
+- 结论: 
+- 备注: 

@@ -1,0 +1,8 @@
+﻿[req]
+distinguished_name=req
+x509_extensions=v3_req
+prompt=no
+[req_distinguished_name]
+CN=192.168.31.170
+[v3_req]
+subjectAltName=IP:192.168.31.170,DNS:localhost

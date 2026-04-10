@@ -1,0 +1,27 @@
+{
+  "id": "topic:/aima/hal/sensor/rgbd_head_front/imu",
+  "kind": "topic",
+  "name": "/aima/hal/sensor/rgbd_head_front/imu",
+  "data_type": "sensor_msgs/msg/Imu",
+  "category": "imu",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/hal/sensor.md",
+      "section": "IMU话题",
+      "description": "深度相机 IMU数据"
+    },
+    {
+      "path": "知识库/官方/5_interface/hal/sensor.md",
+      "section": "深度相机话题",
+      "description": "IMU数据"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "topic:/agent/process_audio_output",
+  "kind": "topic",
+  "name": "/agent/process_audio_output",
+  "data_type": "aimdk_msgs/msg/ProcessedAudioOutput",
+  "category": "audio",
+  "doc_status": "实测",
+  "sources": [
+    {
+      "path": "知识库/02_传感器硬件抽象层/语音音频.md",
+      "section": "📡 话题与类型（实测）",
+      "description": "- `/agent/process_audio_output` → `aimdk_msgs/msg/ProcessedAudioOutput`"
+    },
+    {
+      "path": "知识库/官方/5_interface/interactor/voice.md",
+      "section": "MIC音频流采集话题",
+      "description": "VAD音频采集"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [
+    {
+      "id": "master.audio.vad",
+      "kind": "topic",
+      "interface_name": "/agent/process_audio_output",
+      "project_status": "not_connected",
+      "bridge": "",
+      "entrypoint": "",
+      "notes": "知识库存在，但当前项目未桥接"
+    }
+  ],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": true,
+    "skip_payload_echo_by_default": true
+  }
+}

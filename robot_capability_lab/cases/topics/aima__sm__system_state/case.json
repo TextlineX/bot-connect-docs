@@ -1,0 +1,22 @@
+{
+  "id": "topic:/aima/sm/system_state",
+  "kind": "topic",
+  "name": "/aima/sm/system_state",
+  "data_type": "aimdk_msgs/msg/SmSystemState",
+  "category": "other",
+  "doc_status": "实测",
+  "sources": [
+    {
+      "path": "知识库/02_传感器硬件抽象层/系统监控诊断.md",
+      "section": "📡 基础通信参数（实测类型）",
+      "description": "- `/aima/sm/system_state` → `aimdk_msgs/msg/SmSystemState`"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

@@ -1,0 +1,94 @@
+# 真机探测摘要
+
+- 生成时间: `2026-04-10T14:07:08+08:00`
+- 探测项总数: `85`
+- 发现话题数: `29`
+- 发现服务数: `16`
+
+| Kind | Name | Exists | Runtime Type | Project |
+| --- | --- | --- | --- | --- |
+| preset_action | `加油` | no | `-` | implemented |
+| preset_action | `动感光波` | no | `-` | implemented |
+| preset_action | `双手平举` | no | `-` | not_connected |
+| preset_action | `双手打叉` | no | `-` | not_connected |
+| preset_action | `双手比心` | no | `-` | not_connected |
+| preset_action | `右手举手` | no | `-` | implemented |
+| preset_action | `右手击掌` | no | `-` | not_connected |
+| preset_action | `右手平举` | no | `-` | not_connected |
+| preset_action | `右手挥手` | no | `-` | implemented |
+| preset_action | `右手握手` | no | `-` | implemented |
+| preset_action | `右手敬礼` | no | `-` | implemented |
+| preset_action | `右手比心` | no | `-` | not_connected |
+| preset_action | `右手飞吻` | no | `-` | implemented |
+| preset_action | `左手举手` | no | `-` | implemented |
+| preset_action | `左手击掌` | no | `-` | not_connected |
+| preset_action | `左手平举` | no | `-` | not_connected |
+| preset_action | `左手挥手` | no | `-` | implemented |
+| preset_action | `左手握手` | no | `-` | implemented |
+| preset_action | `左手敬礼` | no | `-` | implemented |
+| preset_action | `左手比心` | no | `-` | not_connected |
+| preset_action | `左手飞吻` | no | `-` | implemented |
+| preset_action | `抓屁股` | no | `-` | not_connected |
+| preset_action | `拜拜` | no | `-` | not_connected |
+| preset_action | `拥抱` | no | `-` | not_connected |
+| preset_action | `挠头` | no | `-` | not_connected |
+| preset_action | `胸前右手挥手` | no | `-` | not_connected |
+| preset_action | `胸前左手挥手` | no | `-` | not_connected |
+| preset_action | `鞠躬` | no | `-` | implemented |
+| preset_action | `鼓掌` | no | `-` | implemented |
+| service | `/aimdk_5Fmsgs/srv/GetHandType` | no | `-` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/GetAllJointState` | yes | `aimdk_msgs/srv/GetAllJointState` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/LedStripCommand` | yes | `aimdk_msgs/srv/LedStripCommand` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/GetMcAction` | yes | `aimdk_msgs/srv/GetMcAction` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/SetMcAction` | yes | `aimdk_msgs/srv/SetMcAction` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/SetMcInputSource` | yes | `aimdk_msgs/srv/SetMcInputSource` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/SetMcPresetMotion` | yes | `aimdk_msgs/srv/SetMcPresetMotion` | implemented |
+| service | `/aimdk_5Fmsgs/srv/GetCurrentInputSource` | yes | `aimdk_msgs/srv/GetCurrentInputSource` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/PlayMediaFile` | yes | `aimdk_msgs/srv/PlayMediaFile` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/PlayEmoji` | yes | `aimdk_msgs/srv/PlayEmoji` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/PlayVideo` | yes | `aimdk_msgs/srv/PlayVideo` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/PlayVideoGroup` | yes | `aimdk_msgs/srv/PlayVideoGroup` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/GetMute` | yes | `aimdk_msgs/srv/GetMute` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/GetVolume` | yes | `aimdk_msgs/srv/GetVolume` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/PlayTts` | yes | `aimdk_msgs/srv/PlayTts` | implemented |
+| service | `/aimdk_5Fmsgs/srv/SetMute` | yes | `aimdk_msgs/srv/SetMute` | not_connected |
+| service | `/aimdk_5Fmsgs/srv/SetVolume` | yes | `aimdk_msgs/srv/SetVolume` | not_connected |
+| topic | `/agent/process_audio_output` | yes | `aimdk_msgs/msg/ProcessedAudioOutput` | not_connected |
+| topic | `/aima/hal/audio/capture` | yes | `aimdk_msgs/msg/AudioCapture` | partial |
+| topic | `/aima/hal/audio/playback` | yes | `aimdk_msgs/msg/AudioPlayback` | not_connected |
+| topic | `/aima/hal/imu/chest/state` | yes | `sensor_msgs/msg/Imu` | not_connected |
+| topic | `/aima/hal/imu/torso/state` | yes | `sensor_msgs/msg/Imu` | not_connected |
+| topic | `/aima/hal/sensor/rgbd_head_front/imu` | no | `-` | not_connected |
+| topic | `/aima/hal/joint/*/command` | no | `-` | not_connected |
+| topic | `/aima/hal/joint/*/state` | no | `-` | not_connected |
+| topic | `/aima/hal/joint/[group]/command` | no | `-` | not_connected |
+| topic | `/aima/hal/joint/[group]/state` | no | `-` | not_connected |
+| topic | `/aima/hal/joint/hand/command` | yes | `aimdk_msgs/msg/HandCommandArray` | not_connected |
+| topic | `/aima/hal/joint/hand/state` | yes | `aimdk_msgs/msg/HandStateArray` | not_connected |
+| topic | `/aima/hal/sensor/lidar_chest_front/imu` | yes | `sensor_msgs/msg/Imu` | not_connected |
+| topic | `/aima/hal/sensor/lidar_chest_front/lidar_pointcloud` | yes | `sensor_msgs/msg/PointCloud2` | not_connected |
+| topic | `/aima/mc/body_pose` | yes | `aimdk_msgs/msg/McBodyPose` | not_connected |
+| topic | `/aima/mc/common/state` | yes | `aimdk_msgs/msg/McCommonState` | not_connected |
+| topic | `/aima/mc/locomotion/velocity` | yes | `aimdk_msgs/msg/McLocomotionVelocity` | needs_real_adapter |
+| topic | `/aima/hds/alert_code_list` | yes | `aimdk_msgs/msg/AlertCodeArray` | not_connected |
+| topic | `/aima/hds/diag_code_list` | yes | `aimdk_msgs/msg/DiagnosticInfoArray` | not_connected |
+| topic | `/aima/hds/monitor/info` | yes | `aimdk_msgs/msg/HdsMonitor` | not_connected |
+| topic | `/aima/sm/system_state` | yes | `aimdk_msgs/msg/SmSystemState` | not_connected |
+| topic | `/aima/hal/pmu/state` | yes | `aimdk_msgs/msg/PmuState` | not_connected |
+| topic | `/face_ui_proxy/status` | yes | `aimdk_msgs/msg/FaceEmojiStatus` | not_connected |
+| topic | `/aima/hal/sensor/touch_head` | yes | `aimdk_msgs/msg/TouchState` | not_connected |
+| topic | `/aima/hal/sensor/rgb_head_rear/camera_info` | yes | `sensor_msgs/msg/CameraInfo` | not_connected |
+| topic | `/aima/hal/sensor/rgb_head_rear/rgb_image` | yes | `sensor_msgs/msg/Image` | not_connected |
+| topic | `/aima/hal/sensor/rgb_head_rear/rgb_image/compressed` | yes | `sensor_msgs/msg/CompressedImage` | not_connected |
+| topic | `/aima/hal/sensor/rgbd_head_front/depth_camera_info` | no | `-` | not_connected |
+| topic | `/aima/hal/sensor/rgbd_head_front/depth_image` | no | `-` | not_connected |
+| topic | `/aima/hal/sensor/rgbd_head_front/depth_pointcloud` | no | `-` | not_connected |
+| topic | `/aima/hal/sensor/rgbd_head_front/rgb_camera_info` | no | `-` | not_connected |
+| topic | `/aima/hal/sensor/rgbd_head_front/rgb_image` | no | `-` | not_connected |
+| topic | `/aima/hal/sensor/rgbd_head_front/rgb_image/compressed` | yes | `sensor_msgs/msg/CompressedImage` | not_connected |
+| topic | `/aima/hal/sensor/stereo_head_front_left/camera_info` | yes | `sensor_msgs/msg/CameraInfo` | not_connected |
+| topic | `/aima/hal/sensor/stereo_head_front_left/rgb_image` | yes | `sensor_msgs/msg/Image` | not_connected |
+| topic | `/aima/hal/sensor/stereo_head_front_left/rgb_image/compressed` | yes | `sensor_msgs/msg/CompressedImage` | not_connected |
+| topic | `/aima/hal/sensor/stereo_head_front_right/camera_info` | yes | `sensor_msgs/msg/CameraInfo` | not_connected |
+| topic | `/aima/hal/sensor/stereo_head_front_right/rgb_image` | yes | `sensor_msgs/msg/Image` | not_connected |
+| topic | `/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed` | yes | `sensor_msgs/msg/CompressedImage` | not_connected |

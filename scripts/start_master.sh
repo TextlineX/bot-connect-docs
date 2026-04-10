@@ -11,9 +11,16 @@ elif [ -f "$ROOT/config/local.sh" ]; then
 fi
 
 : "${WS_URL:=ws://127.0.0.1:8765}"
-: "${ROBOT_ID:=master-01}"
+: "${MASTER_ROBOT_ID:=}"
+if [ -n "${MASTER_ROBOT_ID}" ]; then
+  ROBOT_ID="${MASTER_ROBOT_ID}"
+else
+  : "${ROBOT_ID:=master-01}"
+fi
 : "${TTS_SERVICE:=/aimdk_5Fmsgs/srv/PlayTts}"
+: "${MASTER_MODULES:=all}"
+export ROBOT_ROLE="master"
 
-echo "[master] WS_URL=$WS_URL ROBOT_ID=$ROBOT_ID TTS_SERVICE=$TTS_SERVICE"
-cd "$ROOT/master"
-python client.py
+echo "[master] WS_URL=$WS_URL ROBOT_ID=$ROBOT_ID TTS_SERVICE=$TTS_SERVICE MASTER_MODULES=$MASTER_MODULES"
+cd "$ROOT"
+python robot/client.py

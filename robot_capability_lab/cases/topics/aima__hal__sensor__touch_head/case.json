@@ -1,0 +1,27 @@
+{
+  "id": "topic:/aima/hal/sensor/touch_head",
+  "kind": "topic",
+  "name": "/aima/hal/sensor/touch_head",
+  "data_type": "TouchState",
+  "category": "touch",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/hal/sensor.md",
+      "section": "头部触摸状态话题",
+      "description": "头部触摸状态"
+    },
+    {
+      "path": "知识库/官方/5_interface/hal/sensor.md",
+      "section": "话题名称: /aima/hal/sensor/touch_head",
+      "description": "# 话题名称: /aima/hal/sensor/touch_head"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

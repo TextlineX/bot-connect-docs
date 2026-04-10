@@ -1,0 +1,37 @@
+{
+  "id": "service:/aimdk_5Fmsgs/srv/SetMcPresetMotion",
+  "kind": "service",
+  "name": "/aimdk_5Fmsgs/srv/SetMcPresetMotion",
+  "data_type": "SetMcPresetMotion",
+  "category": "motion",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+      "section": "预设动作控制服务",
+      "description": "执行预设动作(**请先进入稳定站立模式**)"
+    },
+    {
+      "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+      "section": "服务名称: /aimdk_5Fmsgs/srv/SetMcPresetMotion",
+      "description": "# 服务名称: /aimdk_5Fmsgs/srv/SetMcPresetMotion"
+    }
+  ],
+  "project_status": "implemented",
+  "project_bindings": [
+    {
+      "id": "master.preset.motion",
+      "kind": "service",
+      "interface_name": "/aimdk_5Fmsgs/srv/SetMcPresetMotion",
+      "project_status": "implemented",
+      "bridge": "frontend exec/preset -> ActionRouter -> ROS2 SetMcPresetMotion",
+      "entrypoint": "common/preset_motion_client.py",
+      "notes": "已接真实预设动作服务"
+    }
+  ],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

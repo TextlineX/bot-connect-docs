@@ -2,7 +2,7 @@
   <section class="card">
     <div class="card-head">
       <h3>TTS 对话</h3>
-      <span class="pill">exec.tts</span>
+      <span class="pill">exec.tts → {{ state.controlTargetRobot }}</span>
     </div>
     <div class="chat-window">
       <div v-for="(m,idx) in messages" :key="idx" :class="['bubble', m.role === 'you' ? 'you' : 'bot']">
@@ -34,6 +34,7 @@ const messages = ref([
 // 当有新的 TTS 回执 result 时，追加机器人消息
 watch(() => state.results[0], (r) => {
   if (!r) return
+  if (!String(r.action || '').includes('tts')) return
   messages.value.push({ role:'bot', text:`回执: ${r.detail || ''} ok=${r.ok}`, ts: new Date().toLocaleTimeString() })
   if (messages.value.length > 200) messages.value.shift()
 })
@@ -43,7 +44,7 @@ function sendTts() {
   const msg = {
     type: 'exec',
     robot_id: state.robotId,
-    target_robot: state.targetRobot,
+    target_robot: state.controlTargetRobot,
     payload: { action: 'tts', text: ttsText.value },
     ts: Date.now() / 1000,
   }

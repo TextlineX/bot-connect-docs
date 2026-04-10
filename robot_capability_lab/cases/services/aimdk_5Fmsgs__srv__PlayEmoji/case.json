@@ -1,0 +1,27 @@
+{
+  "id": "service:/aimdk_5Fmsgs/srv/PlayEmoji",
+  "kind": "service",
+  "name": "/aimdk_5Fmsgs/srv/PlayEmoji",
+  "data_type": "PlayEmoji",
+  "category": "screen",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/interactor/screen.md",
+      "section": "表情播放服务",
+      "description": "播放表情"
+    },
+    {
+      "path": "知识库/官方/5_interface/interactor/screen.md",
+      "section": "服务名称: /aimdk_5Fmsgs/srv/PlayEmoji",
+      "description": "# 服务名称: /aimdk_5Fmsgs/srv/PlayEmoji"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

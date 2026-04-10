@@ -1,20 +1,40 @@
 <template>
   <section class="settings page">
-    <h2>设置</h2>
+    <div class="card-head">
+      <h2>设置</h2>
+      <span class="pill">config v{{ state.configVersion || 0 }}</span>
+    </div>
+
     <div class="card-grid">
       <div class="card">
-        <div class="card-head"><h3>连接</h3></div>
+        <div class="card-head"><h3>连接与角色</h3></div>
         <div class="field">
           <label>WS 地址</label>
           <input v-model="state.wsUrl" placeholder="ws://127.0.0.1:8765" />
         </div>
-        <div class="field">
-          <label>本机 ID</label>
-          <input v-model="state.robotId" placeholder="controller" />
+        <div class="field duo">
+          <div>
+            <label>本机 ID</label>
+            <input v-model="state.robotId" placeholder="controller" />
+          </div>
+          <div>
+            <label>本机角色</label>
+            <select v-model="state.role">
+              <option value="controller">controller</option>
+              <option value="master">master</option>
+              <option value="slave">slave</option>
+            </select>
+          </div>
         </div>
-        <div class="field">
-          <label>默认 target_robot</label>
-          <input v-model="state.targetRobot" placeholder="master-01" />
+        <div class="field duo">
+          <div>
+            <label>大脑 master</label>
+            <input v-model="state.brainTargetRobot" placeholder="master-01" />
+          </div>
+          <div>
+            <label>控制 slave</label>
+            <input v-model="state.controlTargetRobot" placeholder="slave-01" />
+          </div>
         </div>
         <div class="field row switch-line">
           <label>自动重连 WS</label>
@@ -22,11 +42,62 @@
             <span class="knob"></span>
           </button>
         </div>
-        <button class="primary" @click="saveConfig()">保存连接配置</button>
+        <div class="hint">控制/动作默认发给 slave，ASR/AI 默认发给 master。保存会写入后端 config.json 并同步主从。</div>
+        <button class="primary" @click="syncAllConfig">保存并同步全部配置</button>
       </div>
 
       <div class="card">
-        <div class="card-head"><h3>自动语音回复</h3></div>
+        <div class="card-head"><h3>主机 AI</h3></div>
+        <div class="field row switch-line">
+          <label>启用主机 AI 解析</label>
+          <button class="toggle-btn" :class="{on: state.settings.masterAiEnabled}" @click="toggleMasterAi">
+            <span class="knob"></span>
+          </button>
+        </div>
+        <div class="field row switch-line">
+          <label>message 自动 TTS 播报</label>
+          <button class="toggle-btn" :class="{on: state.settings.masterAiAutoTts}" @click="toggleMasterAiAutoTts">
+            <span class="knob"></span>
+          </button>
+        </div>
+        <div class="field row switch-line">
+          <label>允许 AI 执行动作（危险）</label>
+          <button class="toggle-btn" :class="{on: state.settings.masterAiAllowActionExecution}" @click="toggleMasterAiAllowActionExecution">
+            <span class="knob"></span>
+          </button>
+        </div>
+        <div class="field row switch-line">
+          <label>AI 动作转发到 slave</label>
+          <button class="toggle-btn" :class="{on: state.settings.masterAiForward}" @click="toggleMasterAiForward">
+            <span class="knob"></span>
+          </button>
+        </div>
+        <div class="field row switch-line">
+          <label>AI 行为锁</label>
+          <button class="toggle-btn" :class="{on: state.settings.masterAiBehaviorLockEnabled}" @click="toggleMasterAiLock">
+            <span class="knob"></span>
+          </button>
+        </div>
+        <div class="field duo">
+          <div>
+            <label>锁超时 (秒)</label>
+            <input type="number" min="1" max="120" v-model.number="state.settings.masterAiBehaviorLockTimeoutSec" />
+          </div>
+          <div>
+            <label>转发目标 robot_id</label>
+            <input v-model="state.settings.masterAiForwardTarget" placeholder="slave-01" />
+          </div>
+        </div>
+        <div class="field">
+          <label>AI TTS 目标 robot_id</label>
+          <input v-model="state.settings.masterAiTtsTarget" placeholder="slave-01" />
+        </div>
+        <div class="hint">行为锁开启后，上一次 AI 产生的 slave 请求未返回 result 前，新的 ASR/AI 动作会被跳过。</div>
+        <button class="primary" @click="syncAllConfig">保存并同步全部配置</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>后端自动语音回复</h3></div>
         <div class="field row switch-line">
           <label>启用自动语音回复</label>
           <button class="toggle-btn" :class="{on: state.settings.autoAiReply}" @click="toggleAi">
@@ -41,44 +112,51 @@
           <label>TTS 目标机器人</label>
           <input v-model="state.settings.ttsRobotId" placeholder="master-01" />
         </div>
-        <div class="hint">保存后写入本地存储并下发给后端（配置会持久化到 backend/config.json）。</div>
-        <button class="primary" @click="saveSettings">保存并下发</button>
+        <div class="hint">这是后端的旧式自动回复开关，AI 主流程仍由 master 负责。</div>
+        <button class="primary" @click="syncAllConfig">保存并同步全部配置</button>
       </div>
 
       <div class="card">
         <div class="card-head"><h3>显示</h3></div>
         <div class="field row">
-          <label><input type="checkbox" v-model="autoScroll" /> 自动滚动日志/ASR</label>
+          <label><input type="checkbox" v-model="state.settings.uiAutoScroll" /> 自动滚动日志/ASR</label>
         </div>
+        <button class="primary" @click="syncAllConfig">保存并同步全部配置</button>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import { useStore } from '../store'
 
-const { state, saveConfig, send } = useStore()
-const autoScroll = ref(true)
+const { state, pushConfigSync } = useStore()
 
 function toggleAi() {
   state.settings.autoAiReply = !state.settings.autoAiReply
+}
+function toggleMasterAi() {
+  state.settings.masterAiEnabled = !state.settings.masterAiEnabled
+}
+function toggleMasterAiAutoTts() {
+  state.settings.masterAiAutoTts = !state.settings.masterAiAutoTts
+}
+function toggleMasterAiAllowActionExecution() {
+  state.settings.masterAiAllowActionExecution = !state.settings.masterAiAllowActionExecution
+}
+function toggleMasterAiForward() {
+  state.settings.masterAiForward = !state.settings.masterAiForward
+}
+function toggleMasterAiLock() {
+  state.settings.masterAiBehaviorLockEnabled = !state.settings.masterAiBehaviorLockEnabled
 }
 function toggleReconnect() {
   state.autoReconnect = !state.autoReconnect
 }
 
-function saveSettings() {
-  saveConfig()
-  send({
-    type: 'config_update',
-    payload: {
-      auto_ai_reply: state.settings.autoAiReply,
-      ai_prefix: state.settings.aiPrefix,
-      tts_robot_id: state.settings.ttsRobotId,
-    }
-  })
+function syncAllConfig() {
+  state.targetRobot = state.brainTargetRobot
+  pushConfigSync()
 }
 </script>
 

@@ -1,0 +1,27 @@
+{
+  "id": "service:/aimdk_5Fmsgs/srv/PlayVideoGroup",
+  "kind": "service",
+  "name": "/aimdk_5Fmsgs/srv/PlayVideoGroup",
+  "data_type": "PlayVideoGroup",
+  "category": "screen",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/interactor/screen.md",
+      "section": "视频播放服务",
+      "description": "播放视频列表"
+    },
+    {
+      "path": "知识库/官方/5_interface/interactor/screen.md",
+      "section": "服务名称: /aimdk_5Fmsgs/srv/PlayVideoGroup",
+      "description": "# 服务名称: /aimdk_5Fmsgs/srv/PlayVideoGroup"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

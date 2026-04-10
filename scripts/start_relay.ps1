@@ -1,16 +1,27 @@
-﻿# 一键启动后端+前端（各自独立窗口）
+# 一键启动后端+前端（各自独立窗口）
 param(
-  [string]$ModelPath = "H:\\models\\vosk-model-small-cn-0.22",
-  [string]$PythonBin = "C:\\Python314\\python.exe",
+  [string]$ModelPath = "",
+  [string]$PythonBin = "python",
   [int]$WsPort = 8765,
-  [int]$DevPort = 5173
+  [int]$DevPort = 5173,
+  [string]$AsrMode = "master"    # master | local | off
 )
 
-$root = "H:\Project\Bot\bot_connect\scripts"
-$backend = Join-Path $root "start_backend.ps1"
-$frontend = Join-Path $root "start_frontend.ps1"
+$ErrorActionPreference = "Stop"
 
-Start-Process powershell -ArgumentList "-NoLogo -ExecutionPolicy Bypass -File `"$backend`" -ModelPath `"$ModelPath`" -PythonBin `"$PythonBin`" -Port $WsPort"
-Start-Process powershell -ArgumentList "-NoLogo -ExecutionPolicy Bypass -File `"$frontend`" -Port $DevPort"
+$scriptDir = $PSScriptRoot
+if (-not $scriptDir) { $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition }
+if (-not $scriptDir) { throw "无法确定脚本目录" }
 
-Write-Host "Relay started: backend ws://0.0.0.0:$WsPort , frontend http://<PC_IP>:$DevPort"
+$backend = Join-Path $scriptDir "start_backend.ps1"
+$frontend = Join-Path $scriptDir "start_frontend.ps1"
+
+if (-not (Test-Path $backend)) { throw "未找到后端启动脚本: $backend" }
+if (-not (Test-Path $frontend)) { throw "未找到前端启动脚本: $frontend" }
+
+Start-Process powershell -ArgumentList "-NoLogo -NoExit -ExecutionPolicy Bypass -File `"$backend`" -ModelPath `"$ModelPath`" -PythonBin `"$PythonBin`" -Port $WsPort -AsrMode $AsrMode"
+Start-Process powershell -ArgumentList "-NoLogo -NoExit -ExecutionPolicy Bypass -File `"$frontend`" -Port $DevPort"
+
+Write-Host "Relay launcher finished."
+Write-Host "Backend window: ws://0.0.0.0:$WsPort"
+Write-Host "Frontend window: http://<PC_IP>:$DevPort"

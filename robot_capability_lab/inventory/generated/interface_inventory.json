@@ -1,0 +1,2244 @@
+{
+  "generated_at": "2026-04-10T13:43:06+08:00",
+  "counts": {
+    "total": 85,
+    "topics": 39,
+    "services": 17,
+    "preset_actions": 29
+  },
+  "items": [
+    {
+      "id": "preset_action:加油",
+      "kind": "preset_action",
+      "name": "加油",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 3011,
+      "area_id": 11,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.cheer",
+          "kind": "preset_action",
+          "interface_name": "加油",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:动感光波",
+      "kind": "preset_action",
+      "name": "动感光波",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 3007,
+      "area_id": 11,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.dance",
+          "kind": "preset_action",
+          "interface_name": "动感光波",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:双手平举",
+      "kind": "preset_action",
+      "name": "双手平举",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1010,
+      "area_id": 3,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:双手打叉",
+      "kind": "preset_action",
+      "name": "双手打叉",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 3009,
+      "area_id": 11,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:双手比心",
+      "kind": "preset_action",
+      "name": "双手比心",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1007,
+      "area_id": 3,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:右手举手",
+      "kind": "preset_action",
+      "name": "右手举手",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1001,
+      "area_id": 2,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.raise.right",
+          "kind": "preset_action",
+          "interface_name": "右手举手",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:右手击掌",
+      "kind": "preset_action",
+      "name": "右手击掌",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1008,
+      "area_id": 2,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:右手平举",
+      "kind": "preset_action",
+      "name": "右手平举",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1010,
+      "area_id": 2,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:右手挥手",
+      "kind": "preset_action",
+      "name": "右手挥手",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "稳定站立模式下执行"
+        }
+      ],
+      "motion_id": 1002,
+      "area_id": 2,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.wave.right",
+          "kind": "preset_action",
+          "interface_name": "右手挥手",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:右手握手",
+      "kind": "preset_action",
+      "name": "右手握手",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1003,
+      "area_id": 2,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.handshake.right",
+          "kind": "preset_action",
+          "interface_name": "右手握手",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:右手敬礼",
+      "kind": "preset_action",
+      "name": "右手敬礼",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1013,
+      "area_id": 2,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.salute.right",
+          "kind": "preset_action",
+          "interface_name": "右手敬礼",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:右手比心",
+      "kind": "preset_action",
+      "name": "右手比心",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1007,
+      "area_id": 2,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:右手飞吻",
+      "kind": "preset_action",
+      "name": "右手飞吻",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1004,
+      "area_id": 2,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.kiss.right",
+          "kind": "preset_action",
+          "interface_name": "右手飞吻",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:左手举手",
+      "kind": "preset_action",
+      "name": "左手举手",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1001,
+      "area_id": 1,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.raise.left",
+          "kind": "preset_action",
+          "interface_name": "左手举手",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:左手击掌",
+      "kind": "preset_action",
+      "name": "左手击掌",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1008,
+      "area_id": 1,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:左手平举",
+      "kind": "preset_action",
+      "name": "左手平举",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1010,
+      "area_id": 1,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:左手挥手",
+      "kind": "preset_action",
+      "name": "左手挥手",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1002,
+      "area_id": 1,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.wave.left",
+          "kind": "preset_action",
+          "interface_name": "左手挥手",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:左手握手",
+      "kind": "preset_action",
+      "name": "左手握手",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1003,
+      "area_id": 1,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.handshake.left",
+          "kind": "preset_action",
+          "interface_name": "左手握手",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:左手敬礼",
+      "kind": "preset_action",
+      "name": "左手敬礼",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1013,
+      "area_id": 1,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.salute.left",
+          "kind": "preset_action",
+          "interface_name": "左手敬礼",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:左手比心",
+      "kind": "preset_action",
+      "name": "左手比心",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1007,
+      "area_id": 1,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:左手飞吻",
+      "kind": "preset_action",
+      "name": "左手飞吻",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1004,
+      "area_id": 1,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.kiss.left",
+          "kind": "preset_action",
+          "interface_name": "左手飞吻",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:抓屁股",
+      "kind": "preset_action",
+      "name": "抓屁股",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 3025,
+      "area_id": 11,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:拜拜",
+      "kind": "preset_action",
+      "name": "拜拜",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 3031,
+      "area_id": 11,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:拥抱",
+      "kind": "preset_action",
+      "name": "拥抱",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 3008,
+      "area_id": 11,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:挠头",
+      "kind": "preset_action",
+      "name": "挠头",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 3024,
+      "area_id": 11,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:胸前右手挥手",
+      "kind": "preset_action",
+      "name": "胸前右手挥手",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1011,
+      "area_id": 2,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:胸前左手挥手",
+      "kind": "preset_action",
+      "name": "胸前左手挥手",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 1011,
+      "area_id": 1,
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:鞠躬",
+      "kind": "preset_action",
+      "name": "鞠躬",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 3001,
+      "area_id": 11,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.bow",
+          "kind": "preset_action",
+          "interface_name": "鞠躬",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "preset_action:鼓掌",
+      "kind": "preset_action",
+      "name": "鼓掌",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作定义",
+          "description": "同上"
+        }
+      ],
+      "motion_id": 3017,
+      "area_id": 11,
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.clap",
+          "kind": "preset_action",
+          "interface_name": "鼓掌",
+          "project_status": "implemented",
+          "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+          "entrypoint": "master/handlers/action_router.py",
+          "notes": "项目已支持"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/GetHandType",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/GetHandType",
+      "data_type": "GetHandType",
+      "category": "endeffector",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/endeffector.md",
+          "section": "查询手部类型服务",
+          "description": "主动查询手部类型"
+        },
+        {
+          "path": "知识库/官方/5_interface/control_mod/endeffector.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/GetHandType",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/GetHandType"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/GetAllJointState",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/GetAllJointState",
+      "data_type": "GetAllJointState",
+      "category": "joint",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/joint_control.md",
+          "section": "关节状态查询服务",
+          "description": "主动查询关节状态"
+        },
+        {
+          "path": "知识库/官方/5_interface/control_mod/joint_control.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/GetAllJointState",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/GetAllJointState"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/LedStripCommand",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/LedStripCommand",
+      "data_type": "LedStripCommand",
+      "category": "lights",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/lights.md",
+          "section": "灯带控制服务",
+          "description": "灯带控制"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/lights.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/LedStripCommand",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/LedStripCommand"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/GetMcAction",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/GetMcAction",
+      "data_type": "GetMcAction",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/modeswitch.md",
+          "section": "查询运动模式服务",
+          "description": "查询运动模式"
+        },
+        {
+          "path": "知识库/官方/5_interface/control_mod/modeswitch.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/GetMcAction",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/GetMcAction"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/SetMcAction",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/SetMcAction",
+      "data_type": "SetMcAction",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/modeswitch.md",
+          "section": "设置运动模式服务",
+          "description": "设置运动模式"
+        },
+        {
+          "path": "知识库/官方/5_interface/control_mod/modeswitch.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/SetMcAction",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/SetMcAction"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/SetMcInputSource",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/SetMcInputSource",
+      "data_type": "SetMcInputSource",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/MC_control.md",
+          "section": "输入源管理服务",
+          "description": "设置输入源"
+        },
+        {
+          "path": "知识库/官方/5_interface/control_mod/MC_control.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/SetMcInputSource",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/SetMcInputSource"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/SetMcPresetMotion",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/SetMcPresetMotion",
+      "data_type": "SetMcPresetMotion",
+      "category": "motion",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "预设动作控制服务",
+          "description": "执行预设动作(**请先进入稳定站立模式**)"
+        },
+        {
+          "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/SetMcPresetMotion",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/SetMcPresetMotion"
+        }
+      ],
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.preset.motion",
+          "kind": "service",
+          "interface_name": "/aimdk_5Fmsgs/srv/SetMcPresetMotion",
+          "project_status": "implemented",
+          "bridge": "frontend exec/preset -> ActionRouter -> ROS2 SetMcPresetMotion",
+          "entrypoint": "common/preset_motion_client.py",
+          "notes": "已接真实预设动作服务"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/GetCurrentInputSource",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/GetCurrentInputSource",
+      "data_type": "GetCurrentInputSource",
+      "category": "other",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/MC_control.md",
+          "section": "输入源管理服务",
+          "description": "查询当前控制输入源"
+        },
+        {
+          "path": "知识库/官方/5_interface/control_mod/MC_control.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/GetCurrentInputSource",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/GetCurrentInputSource"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/PlayMediaFile",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/PlayMediaFile",
+      "data_type": "PlayMediaFile",
+      "category": "other",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "音频文件播放服务",
+          "description": "音频文件播放"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/PlayMediaFile",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/PlayMediaFile"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/PlayEmoji",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/PlayEmoji",
+      "data_type": "PlayEmoji",
+      "category": "screen",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/screen.md",
+          "section": "表情播放服务",
+          "description": "播放表情"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/screen.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/PlayEmoji",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/PlayEmoji"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/PlayVideo",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/PlayVideo",
+      "data_type": "PlayVideo",
+      "category": "screen",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/screen.md",
+          "section": "视频播放服务",
+          "description": "播放视频"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/screen.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/PlayVideo",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/PlayVideo"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/PlayVideoGroup",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/PlayVideoGroup",
+      "data_type": "PlayVideoGroup",
+      "category": "screen",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/screen.md",
+          "section": "视频播放服务",
+          "description": "播放视频列表"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/screen.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/PlayVideoGroup",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/PlayVideoGroup"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/GetMute",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/GetMute",
+      "data_type": "GetMute",
+      "category": "voice",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "音量控制服务",
+          "description": "查询静音"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/GetMute",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/GetMute"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/GetVolume",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/GetVolume",
+      "data_type": "GetVolume",
+      "category": "voice",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "音量控制服务",
+          "description": "查询音量"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/GetVolume",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/GetVolume"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/PlayTts",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/PlayTts",
+      "data_type": "PlayTts",
+      "category": "voice",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "语音合成服务",
+          "description": "语音合成(文字转语音)播放"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/PlayTts",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/PlayTts"
+        }
+      ],
+      "project_status": "implemented",
+      "project_bindings": [
+        {
+          "id": "master.voice.tts",
+          "kind": "service",
+          "interface_name": "/aimdk_5Fmsgs/srv/PlayTts",
+          "project_status": "implemented",
+          "bridge": "frontend exec.tts -> master VoiceModule -> ROS2 PlayTts",
+          "entrypoint": "common/tts_client.py",
+          "notes": "已接真实 ROS2 TTS 服务"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/SetMute",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/SetMute",
+      "data_type": "SetMute",
+      "category": "voice",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "音量控制服务",
+          "description": "设置静音"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/SetMute",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/SetMute"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "service:/aimdk_5Fmsgs/srv/SetVolume",
+      "kind": "service",
+      "name": "/aimdk_5Fmsgs/srv/SetVolume",
+      "data_type": "SetVolume",
+      "category": "voice",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "音量控制服务",
+          "description": "设置音量"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "服务名称: /aimdk_5Fmsgs/srv/SetVolume",
+          "description": "# 服务名称: /aimdk_5Fmsgs/srv/SetVolume"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/agent/process_audio_output",
+      "kind": "topic",
+      "name": "/agent/process_audio_output",
+      "data_type": "aimdk_msgs/msg/ProcessedAudioOutput",
+      "category": "audio",
+      "doc_status": "实测",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/语音音频.md",
+          "section": "📡 话题与类型（实测）",
+          "description": "- `/agent/process_audio_output` → `aimdk_msgs/msg/ProcessedAudioOutput`"
+        },
+        {
+          "path": "知识库/官方/5_interface/interactor/voice.md",
+          "section": "MIC音频流采集话题",
+          "description": "VAD音频采集"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [
+        {
+          "id": "master.audio.vad",
+          "kind": "topic",
+          "interface_name": "/agent/process_audio_output",
+          "project_status": "not_connected",
+          "bridge": "",
+          "entrypoint": "",
+          "notes": "知识库存在，但当前项目未桥接"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/audio/capture",
+      "kind": "topic",
+      "name": "/aima/hal/audio/capture",
+      "data_type": "aimdk_msgs/msg/AudioCapture",
+      "category": "audio",
+      "doc_status": "实测",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/语音音频.md",
+          "section": "📡 话题与类型（实测）",
+          "description": "- `/aima/hal/audio/capture` → `aimdk_msgs/msg/AudioCapture`"
+        }
+      ],
+      "project_status": "partial",
+      "project_bindings": [
+        {
+          "id": "master.audio.capture",
+          "kind": "topic",
+          "interface_name": "/aima/hal/audio/capture",
+          "project_status": "partial",
+          "bridge": "frontend audio_upload -> local ASR",
+          "entrypoint": "master/handlers/audio_asr.py",
+          "notes": "当前不是直接订阅机器人麦克风话题，而是前端上传音频到 PC 侧识别"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/audio/playback",
+      "kind": "topic",
+      "name": "/aima/hal/audio/playback",
+      "data_type": "aimdk_msgs/msg/AudioPlayback",
+      "category": "audio",
+      "doc_status": "实测",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/语音音频.md",
+          "section": "📡 话题与类型（实测）",
+          "description": "- `/aima/hal/audio/playback` → `aimdk_msgs/msg/AudioPlayback`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/imu/chest/state",
+      "kind": "topic",
+      "name": "/aima/hal/imu/chest/state",
+      "data_type": "sensor_msgs/msg/Imu",
+      "category": "imu",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "IMU话题",
+          "description": "胸部IMU数据"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/imu/torso/state",
+      "kind": "topic",
+      "name": "/aima/hal/imu/torso/state",
+      "data_type": "sensor_msgs/msg/Imu",
+      "category": "imu",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "IMU话题",
+          "description": "胯部IMU数据"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/rgbd_head_front/imu",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/rgbd_head_front/imu",
+      "data_type": "sensor_msgs/msg/Imu",
+      "category": "imu",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "IMU话题",
+          "description": "深度相机 IMU数据"
+        },
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "深度相机话题",
+          "description": "IMU数据"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/joint/*/command",
+      "kind": "topic",
+      "name": "/aima/hal/joint/*/command",
+      "data_type": "JointCommandArray",
+      "category": "joint",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/joint_control.md",
+          "section": "关节控制话题",
+          "description": "关节控制命令"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/joint/*/state",
+      "kind": "topic",
+      "name": "/aima/hal/joint/*/state",
+      "data_type": "JointStateArray",
+      "category": "joint",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/control_mod/joint_control.md",
+          "section": "关节控制话题",
+          "description": "关节状态反馈"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/joint/[group]/command",
+      "kind": "topic",
+      "name": "/aima/hal/joint/[group]/command",
+      "data_type": "aimdk_msgs/msg/JointCommandArray",
+      "category": "joint",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/关节执行器.md",
+          "section": "📡 基础通信参数",
+          "description": "- arm/head/leg/waist：`/aima/hal/joint/[group]/command` → `aimdk_msgs/msg/JointCommandArray`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/joint/[group]/state",
+      "kind": "topic",
+      "name": "/aima/hal/joint/[group]/state",
+      "data_type": "aimdk_msgs/msg/JointStateArray",
+      "category": "joint",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/关节执行器.md",
+          "section": "📡 基础通信参数",
+          "description": "- arm/head/leg/waist：`/aima/hal/joint/[group]/state` → `aimdk_msgs/msg/JointStateArray`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/joint/hand/command",
+      "kind": "topic",
+      "name": "/aima/hal/joint/hand/command",
+      "data_type": "aimdk_msgs/msg/HandCommandArray",
+      "category": "joint",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/关节执行器.md",
+          "section": "📡 基础通信参数",
+          "description": "- hand：`/aima/hal/joint/hand/command` → `aimdk_msgs/msg/HandCommandArray`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/joint/hand/state",
+      "kind": "topic",
+      "name": "/aima/hal/joint/hand/state",
+      "data_type": "aimdk_msgs/msg/HandStateArray",
+      "category": "joint",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/关节执行器.md",
+          "section": "📡 基础通信参数",
+          "description": "- hand：`/aima/hal/joint/hand/state` → `aimdk_msgs/msg/HandStateArray`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/lidar_chest_front/imu",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/lidar_chest_front/imu",
+      "data_type": "sensor_msgs/msg/Imu",
+      "category": "lidar",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "IMU话题",
+          "description": "Lidar IMU数据"
+        },
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "Lidar话题",
+          "description": "Lidar IMU数据"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/lidar_chest_front/lidar_pointcloud",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/lidar_chest_front/lidar_pointcloud",
+      "data_type": "sensor_msgs/msg/PointCloud2",
+      "category": "lidar",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "Lidar话题",
+          "description": "Lidar点云"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/mc/body_pose",
+      "kind": "topic",
+      "name": "/aima/mc/body_pose",
+      "data_type": "aimdk_msgs/msg/McBodyPose",
+      "category": "motion",
+      "doc_status": "实测",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/运动控制.md",
+          "section": "📡 基础通信参数（实测类型）",
+          "description": "- `/aima/mc/body_pose` → `aimdk_msgs/msg/McBodyPose`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/mc/common/state",
+      "kind": "topic",
+      "name": "/aima/mc/common/state",
+      "data_type": "aimdk_msgs/msg/McCommonState",
+      "category": "motion",
+      "doc_status": "实测",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/运动控制.md",
+          "section": "📡 基础通信参数（实测类型）",
+          "description": "- `/aima/mc/common/state` → `aimdk_msgs/msg/McCommonState`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/mc/locomotion/velocity",
+      "kind": "topic",
+      "name": "/aima/mc/locomotion/velocity",
+      "data_type": "aimdk_msgs/msg/McLocomotionVelocity",
+      "category": "motion",
+      "doc_status": "实测",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/运动控制.md",
+          "section": "📡 基础通信参数（实测类型）",
+          "description": "- `/aima/mc/locomotion/velocity` → `aimdk_msgs/msg/McLocomotionVelocity`"
+        },
+        {
+          "path": "知识库/官方/5_interface/control_mod/locomotion.md",
+          "section": "走跑控制话题",
+          "description": "走跑控制(**稳定站立模式下执行**)"
+        },
+        {
+          "path": "知识库/官方/5_interface/control_mod/locomotion.md",
+          "section": "话题名称: /aima/mc/locomotion/velocity",
+          "description": "# 话题名称: /aima/mc/locomotion/velocity"
+        }
+      ],
+      "project_status": "needs_real_adapter",
+      "project_bindings": [
+        {
+          "id": "master.motion.locomotion",
+          "kind": "topic",
+          "interface_name": "/aima/mc/locomotion/velocity",
+          "project_status": "needs_real_adapter",
+          "bridge": "frontend cmd_vel -> master MotionModule",
+          "entrypoint": "master/handlers/motion.py",
+          "notes": "当前只更新本地 RobotSDK 状态，没有真正 publish 到 ROS2 locomotion topic"
+        }
+      ],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hds/alert_code_list",
+      "kind": "topic",
+      "name": "/aima/hds/alert_code_list",
+      "data_type": "aimdk_msgs/msg/AlertCodeArray",
+      "category": "other",
+      "doc_status": "实测",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/系统监控诊断.md",
+          "section": "📡 基础通信参数（实测类型）",
+          "description": "- `/aima/hds/alert_code_list` → `aimdk_msgs/msg/AlertCodeArray`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hds/diag_code_list",
+      "kind": "topic",
+      "name": "/aima/hds/diag_code_list",
+      "data_type": "aimdk_msgs/msg/DiagnosticInfoArray",
+      "category": "other",
+      "doc_status": "实测",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/系统监控诊断.md",
+          "section": "📡 基础通信参数（实测类型）",
+          "description": "- `/aima/hds/diag_code_list` → `aimdk_msgs/msg/DiagnosticInfoArray`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hds/monitor/info",
+      "kind": "topic",
+      "name": "/aima/hds/monitor/info",
+      "data_type": "aimdk_msgs/msg/HdsMonitor",
+      "category": "other",
+      "doc_status": "实测",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/系统监控诊断.md",
+          "section": "📡 基础通信参数（实测类型）",
+          "description": "- `/aima/hds/monitor/info` → `aimdk_msgs/msg/HdsMonitor`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/sm/system_state",
+      "kind": "topic",
+      "name": "/aima/sm/system_state",
+      "data_type": "aimdk_msgs/msg/SmSystemState",
+      "category": "other",
+      "doc_status": "实测",
+      "sources": [
+        {
+          "path": "知识库/02_传感器硬件抽象层/系统监控诊断.md",
+          "section": "📡 基础通信参数（实测类型）",
+          "description": "- `/aima/sm/system_state` → `aimdk_msgs/msg/SmSystemState`"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/pmu/state",
+      "kind": "topic",
+      "name": "/aima/hal/pmu/state",
+      "data_type": "PmuState",
+      "category": "power",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/pmu.md",
+          "section": "电源管理话题",
+          "description": "电源管理数据"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/face_ui_proxy/status",
+      "kind": "topic",
+      "name": "/face_ui_proxy/status",
+      "data_type": "FaceEmojiStatus",
+      "category": "screen",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/interactor/screen.md",
+          "section": "表情播放状态查询话题",
+          "description": "Emoji播放状态"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/touch_head",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/touch_head",
+      "data_type": "TouchState",
+      "category": "touch",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "头部触摸状态话题",
+          "description": "头部触摸状态"
+        },
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "话题名称: /aima/hal/sensor/touch_head",
+          "description": "# 话题名称: /aima/hal/sensor/touch_head"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": false,
+        "skip_payload_echo_by_default": false
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/rgb_head_rear/camera_info",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/rgb_head_rear/camera_info",
+      "data_type": "sensor_msgs/msg/CameraInfo",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "后视RGB相机话题",
+          "description": "相机内参"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/rgb_head_rear/rgb_image",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/rgb_head_rear/rgb_image",
+      "data_type": "sensor_msgs/msg/Image",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "后视RGB相机话题",
+          "description": "原始图像"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/rgb_head_rear/rgb_image/compressed",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/rgb_head_rear/rgb_image/compressed",
+      "data_type": "sensor_msgs/msg/CompressedImage",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "后视RGB相机话题",
+          "description": "压缩图像"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/rgbd_head_front/depth_camera_info",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/rgbd_head_front/depth_camera_info",
+      "data_type": "sensor_msgs/msg/CameraInfo",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "深度相机话题",
+          "description": "深度内参"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/rgbd_head_front/depth_image",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/rgbd_head_front/depth_image",
+      "data_type": "sensor_msgs/msg/Image",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "深度相机话题",
+          "description": "深度图像"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/rgbd_head_front/depth_pointcloud",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/rgbd_head_front/depth_pointcloud",
+      "data_type": "sensor_msgs/msg/PointCloud2",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "深度相机话题",
+          "description": "深度点云"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/rgbd_head_front/rgb_camera_info",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/rgbd_head_front/rgb_camera_info",
+      "data_type": "sensor_msgs/msg/CameraInfo",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "深度相机话题",
+          "description": "RGB内参"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/rgbd_head_front/rgb_image",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/rgbd_head_front/rgb_image",
+      "data_type": "sensor_msgs/msg/Image",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "深度相机话题",
+          "description": "原始图像"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/rgbd_head_front/rgb_image/compressed",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/rgbd_head_front/rgb_image/compressed",
+      "data_type": "sensor_msgs/msg/CompressedImage",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "深度相机话题",
+          "description": "压缩图像"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/stereo_head_front_left/camera_info",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/stereo_head_front_left/camera_info",
+      "data_type": "sensor_msgs/msg/CameraInfo",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "双目相机话题",
+          "description": "左目内参"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/stereo_head_front_left/rgb_image",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/stereo_head_front_left/rgb_image",
+      "data_type": "sensor_msgs/msg/Image",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "双目相机话题",
+          "description": "左目原始图像"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/stereo_head_front_left/rgb_image/compressed",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/stereo_head_front_left/rgb_image/compressed",
+      "data_type": "sensor_msgs/msg/CompressedImage",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "双目相机话题",
+          "description": "左目压缩图像"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/stereo_head_front_right/camera_info",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/stereo_head_front_right/camera_info",
+      "data_type": "sensor_msgs/msg/CameraInfo",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "双目相机话题",
+          "description": "右目内参"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/stereo_head_front_right/rgb_image",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/stereo_head_front_right/rgb_image",
+      "data_type": "sensor_msgs/msg/Image",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "双目相机话题",
+          "description": "右目原始图像"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    },
+    {
+      "id": "topic:/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed",
+      "kind": "topic",
+      "name": "/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed",
+      "data_type": "sensor_msgs/msg/CompressedImage",
+      "category": "vision",
+      "doc_status": "已文档化",
+      "sources": [
+        {
+          "path": "知识库/官方/5_interface/hal/sensor.md",
+          "section": "双目相机话题",
+          "description": "右目压缩图像"
+        }
+      ],
+      "project_status": "not_connected",
+      "project_bindings": [],
+      "verification": {
+        "needs_runtime_validation": true,
+        "high_bandwidth": true,
+        "skip_payload_echo_by_default": true
+      }
+    }
+  ]
+}

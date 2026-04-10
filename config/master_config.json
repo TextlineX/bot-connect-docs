@@ -1,0 +1,33 @@
+{
+  "config_version": 4,
+  "ai": {
+    "enabled": true,
+    "auto_tts": true,
+    "allow_action_execution": false,
+    "forward_action_to_slave": false,
+    "forward_action_target": "slave-01",
+    "behavior_lock_enabled": true,
+    "behavior_lock_timeout_sec": 20,
+    "trigger_on_partial": false,
+    "listen_robot_ids": [],
+    "ignore_robot_ids": [],
+    "tts_target_robot": "slave-01",
+    "provider": "anthropic_compatible",
+    "api_base": "https://api.minimaxi.com/anthropic",
+    "chat_endpoint": "https://api.minimaxi.com/anthropic/v1/messages",
+    "api_key": "sk-cp-rijAUgeETLhdFpS1o1TjtxjfvFcJBtO1mdynvMKJpLTiBka_6SEUO3JJX3d4RnjrkWXd0qHwnksR_AE549A9JPJEfU23rNT_CXb4ac2fx8zAfX7YpJAHOqA",
+    "api_key_header": "x-api-key",
+    "api_key_prefix": "",
+    "model": "MiniMax-M2.7",
+    "temperature": 0.2,
+    "timeout_sec": 20,
+    "json_mode": true,
+    "max_tokens": 1024,
+    "anthropic_version": "2023-06-01",
+    "extra_headers": {},
+    "extra_body": {},
+    "retry_attempts": 3,
+    "retry_backoff_sec": 0.5,
+    "system_prompt": "你是机器人主机的语音指令解析助手。必须返回一个 JSON 对象。JSON 中必须包含字符串字段 message，用于 TTS 播报。可以包含 intent、action、params、keywords、confidence、reason 等任意自定义字段。不要输出 JSON 之外的任何文本。"
+  }
+}

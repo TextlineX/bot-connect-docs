@@ -1,0 +1,37 @@
+{
+  "id": "service:/aimdk_5Fmsgs/srv/PlayTts",
+  "kind": "service",
+  "name": "/aimdk_5Fmsgs/srv/PlayTts",
+  "data_type": "PlayTts",
+  "category": "voice",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/interactor/voice.md",
+      "section": "语音合成服务",
+      "description": "语音合成(文字转语音)播放"
+    },
+    {
+      "path": "知识库/官方/5_interface/interactor/voice.md",
+      "section": "服务名称: /aimdk_5Fmsgs/srv/PlayTts",
+      "description": "# 服务名称: /aimdk_5Fmsgs/srv/PlayTts"
+    }
+  ],
+  "project_status": "implemented",
+  "project_bindings": [
+    {
+      "id": "master.voice.tts",
+      "kind": "service",
+      "interface_name": "/aimdk_5Fmsgs/srv/PlayTts",
+      "project_status": "implemented",
+      "bridge": "frontend exec.tts -> master VoiceModule -> ROS2 PlayTts",
+      "entrypoint": "common/tts_client.py",
+      "notes": "已接真实 ROS2 TTS 服务"
+    }
+  ],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

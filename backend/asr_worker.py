@@ -33,7 +33,7 @@ for line in sys.stdin:
                 res = json.loads(rec.Result())
             else:
                 res = json.loads(rec.PartialResult())
-        text = res.get('text', '').strip()
+        text = (res.get('text') or res.get('partial') or '').strip()
         out = {"text": text, "robot_id": rid, "session": session, "seq": seq, "final": final}
         print(json.dumps(out), flush=True)
     except Exception as e:

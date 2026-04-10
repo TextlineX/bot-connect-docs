@@ -1,0 +1,22 @@
+{
+  "id": "topic:/aima/hal/audio/playback",
+  "kind": "topic",
+  "name": "/aima/hal/audio/playback",
+  "data_type": "aimdk_msgs/msg/AudioPlayback",
+  "category": "audio",
+  "doc_status": "实测",
+  "sources": [
+    {
+      "path": "知识库/02_传感器硬件抽象层/语音音频.md",
+      "section": "📡 话题与类型（实测）",
+      "description": "- `/aima/hal/audio/playback` → `aimdk_msgs/msg/AudioPlayback`"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": true,
+    "skip_payload_echo_by_default": true
+  }
+}

@@ -23,12 +23,15 @@
 <script setup>
 import { routes as rawRoutes } from './router'
 import { RouterLink, RouterView } from 'vue-router'
-import { featureConfig } from './config'
+import { useStore } from './store'
+import { computed } from 'vue'
 
-const routes = rawRoutes
+const { state } = useStore()
+
+const routes = computed(() => rawRoutes
   .filter(r => r.name)
   .filter(r => featureEnabled(r.name))
-  .map(r => ({ path: r.path, label: r.name }))
+  .map(r => ({ path: r.path, label: r.name })))
 
 function featureEnabled(name) {
   const map = {
@@ -37,11 +40,12 @@ function featureEnabled(name) {
     'TTS': 'showTTS',
     'ASR': 'showASR',
     '音频': 'showAudio',
+    '监控': 'showMonitor',
     '日志': 'showLogs',
     '设置': 'showSettings',
   }
   const key = map[name]
   if (!key) return true
-  return featureConfig[key] !== false
+  return state.featureFlags?.[key] !== false
 }
 </script>

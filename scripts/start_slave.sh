@@ -11,8 +11,14 @@ elif [ -f "$ROOT/config/local.sh" ]; then
 fi
 
 : "${WS_URL:=ws://127.0.0.1:8765}"
-: "${ROBOT_ID:=slave-01}"
+: "${SLAVE_ROBOT_ID:=}"
+if [ -n "${SLAVE_ROBOT_ID}" ]; then
+  ROBOT_ID="${SLAVE_ROBOT_ID}"
+else
+  ROBOT_ID="slave-01"
+fi
+export ROBOT_ROLE="slave"
 
 echo "[slave] WS_URL=$WS_URL ROBOT_ID=$ROBOT_ID"
-cd "$ROOT/slave"
-python client.py
+cd "$ROOT"
+python robot/client.py

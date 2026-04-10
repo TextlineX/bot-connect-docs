@@ -1,0 +1,26 @@
+# ??????????????
+
+| 优先级 | 功能或传感器名称 | 对应接口 | 当前测试结论 | 为什么重要 | 备注 |
+| --- | --- | --- | --- | --- | --- |
+| P0 | 运动公共状态 | /aima/mc/common/state | 已发现但主动采样失败 | 主机判断从机能不能进入可执行运动状态的核心依据 | 主从行动闭环最重要状态源之一 |
+| P0 | 电源与电池状态 | /aima/hal/pmu/state | 已发现但主动采样失败 | 主机需要知道从机是否低电量或供电异常 | 直接影响任务能否继续执行 |
+| P0 | 整机健康监控 | /aima/hds/monitor/info | 已发现但主动采样失败 | 主机需要知道从机当前是否有系统异常或健康告警 | 适合作为任务阻断条件 |
+| P1 | 机器人麦克风音频 | /aima/hal/audio/capture | 已发现 | 如果主机要通过语音辅助下发命令这一路最终要接真机麦克风 | 当前项目还是半接入 |
+| P1 | 屏幕与表情状态 | /face_ui_proxy/status | 已发现但主动采样失败 | 主机可以用它确认从机是否正确给出界面反馈 | 更偏交互反馈不是行动前提 |
+| P1 | 手部状态 | /aima/hal/joint/hand/state | 已发现但主动采样失败 | 如果从机后面要做抓取或手部动作主机必须知道当前手部状态 | 属于操作类能力前置状态 |
+| P1 | 头部触摸 | /aima/hal/sensor/touch_head | 已发现但主动采样失败 | 可作为人工接管或紧急打断输入 | 适合做人机协作保护 |
+| P1 | 胸部IMU | /aima/hal/imu/chest/state | 已发现但主动采样失败 | 可用于姿态判断和运动异常识别 | 建议在运动链路打通后接入 |
+| P1 | 躯干IMU | /aima/hal/imu/torso/state | 已发现但主动采样失败 | 可用于姿态判断和稳定性监控 | 建议在运动链路打通后接入 |
+| P1 | 前胸激光点云 | /aima/hal/sensor/lidar_chest_front/lidar_pointcloud | 已发现 | 如果主机后续要辅助避障这是最重要的环境感知接口 | 当前优先级低于运动状态链路 |
+| P1 | 前胸激光IMU | /aima/hal/sensor/lidar_chest_front/imu | 已发现 | 适合与激光点云一起做感知增强 | 当前不是第一优先级 |
+| P2 | 后视RGB图像 | /aima/hal/sensor/rgb_head_rear/rgb_image | 已发现 | 适合主机远程观察从机后方环境 | 不是行动闭环前提 |
+| P2 | 后视压缩图像 | /aima/hal/sensor/rgb_head_rear/rgb_image/compressed | 已发现 | 适合低带宽视频回传 | 比原始图像更适合主从远程链路 |
+| P2 | 前左目图像 | /aima/hal/sensor/stereo_head_front_left/rgb_image | 已发现 | 后续做前向视觉辅助时可用 | 属于感知增强阶段 |
+| P2 | 前右目图像 | /aima/hal/sensor/stereo_head_front_right/rgb_image | 已发现 | 后续做双目前向视觉时可用 | 属于感知增强阶段 |
+| P2 | 前左目标定信息 | /aima/hal/sensor/stereo_head_front_left/camera_info | 已发现 | 只有接视觉算法时才真正需要 | 当前不是第一批必接接口 |
+| P2 | 前右目标定信息 | /aima/hal/sensor/stereo_head_front_right/camera_info | 已发现 | 只有接视觉算法时才真正需要 | 当前不是第一批必接接口 |
+| P3 | 前向RGBD压缩图像 | /aima/hal/sensor/rgbd_head_front/rgb_image/compressed | 已发现 | 可作为后续视觉任务备用输入 | 当前优先级低于运动和安全状态 |
+| P3 | 前向RGBD原始彩色图像 | /aima/hal/sensor/rgbd_head_front/rgb_image | 本轮未发现 | 当前不能作为近期能力依赖 | 需要后续单独复测 |
+| P3 | 前向RGBD深度图 | /aima/hal/sensor/rgbd_head_front/depth_image | 本轮未发现 | 当前不能作为近期能力依赖 | 需要后续单独复测 |
+| P3 | 前向RGBD深度点云 | /aima/hal/sensor/rgbd_head_front/depth_pointcloud | 本轮未发现 | 当前不能作为近期能力依赖 | 需要后续单独复测 |
+| P3 | 前向RGBD深度标定信息 | /aima/hal/sensor/rgbd_head_front/depth_camera_info | 本轮未发现 | 当前不能作为近期能力依赖 | 需要后续单独复测 |

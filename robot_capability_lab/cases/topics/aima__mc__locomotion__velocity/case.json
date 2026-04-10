@@ -1,0 +1,42 @@
+{
+  "id": "topic:/aima/mc/locomotion/velocity",
+  "kind": "topic",
+  "name": "/aima/mc/locomotion/velocity",
+  "data_type": "aimdk_msgs/msg/McLocomotionVelocity",
+  "category": "motion",
+  "doc_status": "实测",
+  "sources": [
+    {
+      "path": "知识库/02_传感器硬件抽象层/运动控制.md",
+      "section": "📡 基础通信参数（实测类型）",
+      "description": "- `/aima/mc/locomotion/velocity` → `aimdk_msgs/msg/McLocomotionVelocity`"
+    },
+    {
+      "path": "知识库/官方/5_interface/control_mod/locomotion.md",
+      "section": "走跑控制话题",
+      "description": "走跑控制(**稳定站立模式下执行**)"
+    },
+    {
+      "path": "知识库/官方/5_interface/control_mod/locomotion.md",
+      "section": "话题名称: /aima/mc/locomotion/velocity",
+      "description": "# 话题名称: /aima/mc/locomotion/velocity"
+    }
+  ],
+  "project_status": "needs_real_adapter",
+  "project_bindings": [
+    {
+      "id": "master.motion.locomotion",
+      "kind": "topic",
+      "interface_name": "/aima/mc/locomotion/velocity",
+      "project_status": "needs_real_adapter",
+      "bridge": "frontend cmd_vel -> master MotionModule",
+      "entrypoint": "master/handlers/motion.py",
+      "notes": "当前只更新本地 RobotSDK 状态，没有真正 publish 到 ROS2 locomotion topic"
+    }
+  ],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

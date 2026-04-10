@@ -1,0 +1,114 @@
+{
+  "topic_tests": [
+    {
+      "name": "/aima/hal/imu/chest/state",
+      "timeout": 6,
+      "notes": "胸部 IMU 采样"
+    },
+    {
+      "name": "/aima/hal/imu/torso/state",
+      "timeout": 6,
+      "notes": "躯干 IMU 采样"
+    },
+    {
+      "name": "/aima/hal/sensor/touch_head",
+      "timeout": 6,
+      "notes": "头部触摸状态采样"
+    },
+    {
+      "name": "/aima/hal/pmu/state",
+      "timeout": 8,
+      "notes": "PMU 状态采样"
+    },
+    {
+      "name": "/aima/mc/common/state",
+      "timeout": 6,
+      "notes": "运动公共状态采样"
+    },
+    {
+      "name": "/aima/hds/monitor/info",
+      "timeout": 8,
+      "notes": "监控状态采样"
+    },
+    {
+      "name": "/face_ui_proxy/status",
+      "timeout": 6,
+      "notes": "屏幕/表情状态采样"
+    },
+    {
+      "name": "/aima/hal/joint/hand/state",
+      "timeout": 8,
+      "notes": "手部状态采样"
+    }
+  ],
+  "service_query_tests": [
+    {
+      "name": "/aimdk_5Fmsgs/srv/GetVolume",
+      "request": {
+        "request": {}
+      },
+      "timeout": 8,
+      "notes": "查询当前音量"
+    },
+    {
+      "name": "/aimdk_5Fmsgs/srv/GetMute",
+      "request": {
+        "request": {}
+      },
+      "timeout": 8,
+      "notes": "查询静音状态"
+    },
+    {
+      "name": "/aimdk_5Fmsgs/srv/GetMcAction",
+      "request": {
+        "request": {}
+      },
+      "timeout": 8,
+      "notes": "查询当前运动模式"
+    },
+    {
+      "name": "/aimdk_5Fmsgs/srv/GetCurrentInputSource",
+      "request": {
+        "request": {}
+      },
+      "timeout": 8,
+      "notes": "查询当前控制输入源"
+    },
+    {
+      "name": "/aimdk_5Fmsgs/srv/GetHandType",
+      "request": {
+        "request": {}
+      },
+      "timeout": 8,
+      "notes": "查询手部类型"
+    },
+    {
+      "name": "/aimdk_5Fmsgs/srv/GetAllJointState",
+      "request": {
+        "request": {}
+      },
+      "timeout": 10,
+      "notes": "查询所有关节状态"
+    }
+  ],
+  "service_side_effect_tests": [
+    {
+      "name": "/aimdk_5Fmsgs/srv/PlayTts",
+      "request": {
+        "header": {},
+        "tts_req": {
+          "text": "能力实验室二阶段测试",
+          "priority_level": {
+            "value": 1
+          },
+          "priority_weight": 0,
+          "domain": "capability_lab",
+          "trace_id": "phase2",
+          "is_interrupted": false
+        }
+      },
+      "timeout": 10,
+      "notes": "低优先级 TTS 主动调用测试"
+    }
+  ]
+}

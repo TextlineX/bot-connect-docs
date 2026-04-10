@@ -1,0 +1,22 @@
+{
+  "id": "topic:/aima/hal/joint/*/command",
+  "kind": "topic",
+  "name": "/aima/hal/joint/*/command",
+  "data_type": "JointCommandArray",
+  "category": "joint",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/control_mod/joint_control.md",
+      "section": "关节控制话题",
+      "description": "关节控制命令"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

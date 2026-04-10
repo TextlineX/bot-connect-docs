@@ -1,65 +1,397 @@
 import { reactive, computed } from 'vue'
+import { featureConfig as defaultFeatureConfig } from './config'
+
+const CFG_KEY = 'bot_connect_cfg_v3'
+
+function cloneFeatureFlags(source = {}) {
+  return { ...defaultFeatureConfig, ...(source || {}) }
+}
+
+function defaultAppConfig() {
+  return {
+    version: 0,
+    frontend: {
+      controller_robot_id: 'controller',
+      role: 'controller',
+      ws_url: '',
+      auto_reconnect: true,
+      targets: {
+        brain_robot_id: 'master-01',
+        control_robot_id: 'slave-01',
+      },
+      display: {
+        auto_scroll: true,
+      },
+      feature_flags: cloneFeatureFlags(),
+    },
+    backend: {
+      auto_ai_reply: false,
+      ai_prefix: '收到：',
+      tts_robot_id: 'master-01',
+    },
+    master: {
+      robot_id: 'master-01',
+      ai: {
+        enabled: false,
+        auto_tts: true,
+        allow_action_execution: false,
+        forward_action_to_slave: false,
+        forward_action_target: 'slave-01',
+        tts_target_robot: 'slave-01',
+        trigger_on_partial: false,
+        behavior_lock_enabled: true,
+        behavior_lock_timeout_sec: 20,
+      },
+    },
+    slave: {
+      robot_id: 'slave-01',
+    },
+  }
+}
 
 const state = reactive({
   wsUrl: '',
   robotId: 'controller',
+  role: 'controller',
+  brainTargetRobot: 'master-01',
+  controlTargetRobot: 'slave-01',
   targetRobot: 'master-01',
-  role: 'controller',          // controller / master / slave
   connected: false,
   autoReconnect: true,
   ws: null,
   reconnectTimer: null,
-  logs: [],          // {ts,type,dir,msg}
-  results: [],       // TTS 回执
-  asr: [],           // asr_text
-  audio: [],         // 上传/录制记录
-  online: {},        // robot_id -> status ts
+  logs: [],
+  results: [],
+  asr: [],
+  audio: [],
+  online: {},
+  robots: {},
+  aiResults: [],
+  configVersion: 0,
+  lastConfigSyncAt: 0,
+  recordingActive: false,
+  recordingSession: '',
+  featureFlags: cloneFeatureFlags(),
   settings: {
     autoAiReply: false,
     aiPrefix: '收到：',
     ttsRobotId: 'master-01',
-  }
+    masterAiEnabled: false,
+    masterAiAutoTts: true,
+    masterAiAllowActionExecution: false,
+    masterAiForward: false,
+    masterAiForwardTarget: 'slave-01',
+    masterAiTtsTarget: 'slave-01',
+    masterAiBehaviorLockEnabled: true,
+    masterAiBehaviorLockTimeoutSec: 20,
+    uiAutoScroll: true,
+  },
 })
 
-const CFG_KEY = 'bot_connect_cfg_v2'
+function nowTs() {
+  return new Date().toLocaleTimeString()
+}
+
+function isObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function mergeDeep(base, extra) {
+  const result = { ...(isObject(base) ? base : {}) }
+  if (!isObject(extra)) return result
+  Object.entries(extra).forEach(([key, value]) => {
+    if (isObject(result[key]) && isObject(value)) {
+      result[key] = mergeDeep(result[key], value)
+    } else {
+      result[key] = value
+    }
+  })
+  return result
+}
+
+function normalizeAppConfig(raw) {
+  const base = defaultAppConfig()
+  if (!isObject(raw)) return base
+
+  if (isObject(raw.settings)) {
+    return mergeDeep(base, {
+      version: Number(raw.configVersion || raw.version || 0),
+      frontend: {
+        controller_robot_id: raw.robotId || base.frontend.controller_robot_id,
+        role: raw.role || base.frontend.role,
+        ws_url: raw.wsUrl || base.frontend.ws_url,
+        auto_reconnect: raw.autoReconnect ?? base.frontend.auto_reconnect,
+        targets: {
+          brain_robot_id: raw.brainTargetRobot || raw.targetRobot || base.frontend.targets.brain_robot_id,
+          control_robot_id: raw.controlTargetRobot || base.frontend.targets.control_robot_id,
+        },
+        display: {
+          auto_scroll: raw.settings.uiAutoScroll ?? base.frontend.display.auto_scroll,
+        },
+        feature_flags: raw.featureFlags || base.frontend.feature_flags,
+      },
+      backend: {
+        auto_ai_reply: raw.settings.autoAiReply ?? base.backend.auto_ai_reply,
+        ai_prefix: raw.settings.aiPrefix ?? base.backend.ai_prefix,
+        tts_robot_id: raw.settings.ttsRobotId || base.backend.tts_robot_id,
+      },
+      master: {
+        robot_id: raw.brainTargetRobot || raw.targetRobot || base.master.robot_id,
+        ai: {
+          enabled: raw.settings.masterAiEnabled ?? base.master.ai.enabled,
+          auto_tts: raw.settings.masterAiAutoTts ?? base.master.ai.auto_tts,
+          allow_action_execution: raw.settings.masterAiAllowActionExecution ?? base.master.ai.allow_action_execution,
+          forward_action_to_slave: raw.settings.masterAiForward ?? base.master.ai.forward_action_to_slave,
+          forward_action_target: raw.settings.masterAiForwardTarget || base.master.ai.forward_action_target,
+          tts_target_robot: raw.settings.masterAiTtsTarget || base.master.ai.tts_target_robot,
+          behavior_lock_enabled: raw.settings.masterAiBehaviorLockEnabled ?? base.master.ai.behavior_lock_enabled,
+          behavior_lock_timeout_sec: raw.settings.masterAiBehaviorLockTimeoutSec ?? base.master.ai.behavior_lock_timeout_sec,
+        },
+      },
+      slave: {
+        robot_id: raw.controlTargetRobot || base.slave.robot_id,
+      },
+    })
+  }
+
+  const merged = mergeDeep(base, raw)
+  if (raw.auto_ai_reply !== undefined || raw.ai_prefix !== undefined || raw.tts_robot_id !== undefined) {
+    merged.backend = mergeDeep(merged.backend, {
+      auto_ai_reply: raw.auto_ai_reply,
+      ai_prefix: raw.ai_prefix,
+      tts_robot_id: raw.tts_robot_id,
+    })
+  }
+  merged.frontend.feature_flags = cloneFeatureFlags(merged.frontend.feature_flags)
+  return merged
+}
+
+function buildAppConfigPayload() {
+  return {
+    version: Number(state.configVersion || 0),
+    frontend: {
+      controller_robot_id: state.robotId,
+      role: state.role,
+      ws_url: state.wsUrl,
+      auto_reconnect: state.autoReconnect,
+      targets: {
+        brain_robot_id: state.brainTargetRobot,
+        control_robot_id: state.controlTargetRobot,
+      },
+      display: {
+        auto_scroll: state.settings.uiAutoScroll,
+      },
+      feature_flags: cloneFeatureFlags(state.featureFlags),
+    },
+    backend: {
+      auto_ai_reply: state.settings.autoAiReply,
+      ai_prefix: state.settings.aiPrefix,
+      tts_robot_id: state.settings.ttsRobotId,
+    },
+    master: {
+      robot_id: state.brainTargetRobot,
+      ai: {
+        enabled: state.settings.masterAiEnabled,
+        auto_tts: state.settings.masterAiAutoTts,
+        allow_action_execution: state.settings.masterAiAllowActionExecution,
+        forward_action_to_slave: state.settings.masterAiForward,
+        forward_action_target: state.settings.masterAiForwardTarget,
+        tts_target_robot: state.settings.masterAiTtsTarget,
+        behavior_lock_enabled: state.settings.masterAiBehaviorLockEnabled,
+        behavior_lock_timeout_sec: Number(state.settings.masterAiBehaviorLockTimeoutSec || 20),
+      },
+    },
+    slave: {
+      robot_id: state.controlTargetRobot,
+    },
+  }
+}
+
+function applyAppConfig(rawConfig, options = {}) {
+  const { persist = false, source = 'local' } = options
+  const next = normalizeAppConfig(rawConfig)
+  const frontend = next.frontend || {}
+  const targets = frontend.targets || {}
+  const backend = next.backend || {}
+  const master = next.master || {}
+  const masterAi = master.ai || {}
+  const slave = next.slave || {}
+
+  state.configVersion = Number(next.version || state.configVersion || 0)
+  state.lastConfigSyncAt = Date.now()
+
+  if (frontend.controller_robot_id) state.robotId = frontend.controller_robot_id
+  if (frontend.role) state.role = frontend.role
+  if (source !== 'remote' || frontend.ws_url) state.wsUrl = frontend.ws_url ?? state.wsUrl
+  state.autoReconnect = frontend.auto_reconnect ?? state.autoReconnect
+
+  state.brainTargetRobot = targets.brain_robot_id || master.robot_id || state.brainTargetRobot
+  state.controlTargetRobot = targets.control_robot_id || slave.robot_id || state.controlTargetRobot
+  state.targetRobot = state.brainTargetRobot
+  state.featureFlags = cloneFeatureFlags(frontend.feature_flags)
+
+  state.settings.uiAutoScroll = frontend.display?.auto_scroll ?? state.settings.uiAutoScroll
+  state.settings.autoAiReply = backend.auto_ai_reply ?? state.settings.autoAiReply
+  state.settings.aiPrefix = backend.ai_prefix ?? state.settings.aiPrefix
+  state.settings.ttsRobotId = backend.tts_robot_id || state.settings.ttsRobotId
+  state.settings.masterAiEnabled = masterAi.enabled ?? state.settings.masterAiEnabled
+  state.settings.masterAiAutoTts = masterAi.auto_tts ?? state.settings.masterAiAutoTts
+  state.settings.masterAiAllowActionExecution = masterAi.allow_action_execution ?? state.settings.masterAiAllowActionExecution
+  state.settings.masterAiForward = masterAi.forward_action_to_slave ?? state.settings.masterAiForward
+  state.settings.masterAiForwardTarget = masterAi.forward_action_target || state.settings.masterAiForwardTarget
+  state.settings.masterAiTtsTarget = masterAi.tts_target_robot || state.settings.masterAiTtsTarget
+  state.settings.masterAiBehaviorLockEnabled = masterAi.behavior_lock_enabled ?? state.settings.masterAiBehaviorLockEnabled
+  state.settings.masterAiBehaviorLockTimeoutSec = Number(
+    masterAi.behavior_lock_timeout_sec ?? state.settings.masterAiBehaviorLockTimeoutSec
+  )
+
+  if (persist) saveConfig()
+}
 
 function loadConfig() {
   try {
     const raw = localStorage.getItem(CFG_KEY)
-    if (!raw) return
-    const cfg = JSON.parse(raw)
-    state.wsUrl = cfg.wsUrl || state.wsUrl
-    state.robotId = cfg.robotId || state.robotId
-    state.targetRobot = cfg.targetRobot || state.targetRobot
-    state.role = cfg.role || state.role
-    state.autoReconnect = cfg.autoReconnect ?? state.autoReconnect
-    state.settings = { ...state.settings, ...(cfg.settings || {}) }
-  } catch (e) {
+    if (raw) {
+      applyAppConfig(JSON.parse(raw))
+      return
+    }
+    const legacy = localStorage.getItem('bot_connect_cfg_v2')
+    if (legacy) {
+      applyAppConfig(JSON.parse(legacy))
+      saveConfig()
+    }
+  } catch {
     // ignore parse errors
   }
 }
 
 function saveConfig() {
-  const cfg = {
-    wsUrl: state.wsUrl,
-    robotId: state.robotId,
-    targetRobot: state.targetRobot,
-    role: state.role,
-    autoReconnect: state.autoReconnect,
-    settings: state.settings,
-  }
-  localStorage.setItem(CFG_KEY, JSON.stringify(cfg))
+  localStorage.setItem(CFG_KEY, JSON.stringify(buildAppConfigPayload()))
 }
 
-function nowTs() { return new Date().toLocaleTimeString() }
 function pushLog(entry) {
-  state.logs.unshift({ ts: nowTs(), ...entry })
+  const log = { ts: nowTs(), ...entry }
+  // 尝试从 msg 里提取元数据，便于过滤
+  if (!log.robot_id || !log.msg_type || !log.source_role || !log.target_role) {
+    const meta = extractLogMeta(log.msg)
+    Object.entries(meta).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '' && log[k] == null) {
+        log[k] = v
+      }
+    })
+  }
+  state.logs.unshift(log)
   if (state.logs.length > 1000) state.logs.pop()
+}
+
+function extractLogMeta(msg) {
+  if (!msg) return {}
+  let obj = null
+  if (typeof msg === 'string') {
+    try { obj = JSON.parse(msg) } catch { obj = null }
+  } else if (typeof msg === 'object') {
+    obj = msg
+  }
+  if (!obj || Array.isArray(obj)) return {}
+  return {
+    msg_type: obj.type,
+    robot_id: obj.robot_id,
+    source_robot_id: obj.source_robot_id,
+    source_role: obj.source_role || obj.role,
+    target_robot: obj.target_robot,
+    target_role: obj.target_role,
+    config_version: obj.config_version,
+    action: obj.action,
+  }
+}
+
+function inferRole(robotId, payload = {}, fallbackRole = '') {
+  if (fallbackRole) return fallbackRole
+  if (payload?.role) return payload.role
+  if (!robotId) return 'robot'
+  if (robotId === state.robotId) return state.role || 'controller'
+  if (String(robotId).startsWith('master')) return 'master'
+  if (String(robotId).startsWith('slave')) return 'slave'
+  return 'robot'
+}
+
+function ensureRobot(robotId) {
+  if (!robotId) return null
+  if (!state.robots[robotId]) {
+    state.robots[robotId] = {
+      robot_id: robotId,
+      role: inferRole(robotId),
+      lastSeen: 0,
+      lastRobotTs: 0,
+      lastType: '',
+      configVersion: 0,
+      status: {},
+      capabilities: {},
+      modules: {},
+      enabledModules: [],
+    }
+  }
+  return state.robots[robotId]
+}
+
+function updateRobotRecord(data) {
+  const robotId = data?.robot_id
+  if (!robotId || robotId === 'server') return
+  const record = ensureRobot(robotId)
+  if (!record) return
+
+  const payload = isObject(data.payload) ? data.payload : {}
+  record.lastSeen = Date.now()
+  record.lastRobotTs = Number(data.ts || 0)
+  record.lastType = data.type || ''
+  record.configVersion = Number(data.config_version || payload.config_version || record.configVersion || 0)
+  record.role = inferRole(robotId, payload, data.role || data.source_role || '')
+
+  if (data.type === 'status') {
+    record.status = mergeDeep(record.status, payload)
+    record.modules = isObject(payload.modules) ? payload.modules : (record.modules || {})
+    record.enabledModules = Array.isArray(payload.enabled_modules)
+      ? payload.enabled_modules.slice()
+      : (record.enabledModules || [])
+  } else if (data.type === 'capabilities') {
+    record.capabilities = mergeDeep(record.capabilities, payload)
+    record.enabledModules = Array.isArray(payload.enabled_modules)
+      ? payload.enabled_modules.slice()
+      : (record.enabledModules || [])
+  }
+
+  state.online[robotId] = record.lastSeen
+}
+
+function updateRecentAudioText(data, text) {
+  const session = data.session ?? data?.payload?.session ?? null
+  const seq = data.seq ?? data?.payload?.seq ?? null
+  if (!session) return
+  const item = state.audio.find((entry) => {
+    if (entry.session !== session) return false
+    if (seq == null || entry.seq == null) return true
+    return String(entry.seq) === String(seq)
+  })
+  if (item) item.text = text
+}
+
+function applyRemoteConfigMessage(data) {
+  const payload = isObject(data.payload) ? data.payload : {}
+  const nextConfig = isObject(payload.config) ? payload.config : payload
+  applyAppConfig(nextConfig, { persist: true, source: 'remote' })
+  pushLog({
+    type: 'info',
+    dir: 'sys',
+    msg: `配置已同步 version=${payload.version ?? data.config_version ?? state.configVersion}`,
+  })
 }
 
 function connect(urlOverride) {
   const url = urlOverride || state.wsUrl
-  if (!url) return pushLog({ type: 'error', dir: 'out', msg: '缺少 WS 地址' })
+  if (!url) {
+    pushLog({ type: 'error', dir: 'out', msg: '缺少 WS 地址' })
+    return
+  }
   if (state.connected && state.ws) return
   saveConfig()
   try {
@@ -67,10 +399,25 @@ function connect(urlOverride) {
     state.ws.onopen = () => {
       state.connected = true
       clearTimeout(state.reconnectTimer)
-      pushLog({ type: 'info', dir: 'sys', msg: '已连接' })
-      const hello = { type: 'hello', robot_id: state.robotId, ts: Date.now()/1000 }
+      pushLog({ type: 'info', dir: 'sys', msg: '已连接', msg_type: 'open' })
+      const hello = {
+        type: 'hello',
+        robot_id: state.robotId,
+        role: state.role,
+        config_version: state.configVersion,
+        ts: Date.now() / 1000,
+      }
       state.ws.send(JSON.stringify(hello))
-      pushLog({ type: 'send', dir: 'out', msg: JSON.stringify(hello) })
+      pushLog({ type: 'send', dir: 'out', msg: JSON.stringify(hello), msg_type: 'hello', robot_id: state.robotId, source_role: state.role })
+      const cfgGet = {
+        type: 'config_get',
+        robot_id: state.robotId,
+        role: state.role,
+        config_version: state.configVersion,
+        ts: Date.now() / 1000,
+      }
+      state.ws.send(JSON.stringify(cfgGet))
+      pushLog({ type: 'send', dir: 'out', msg: JSON.stringify(cfgGet), msg_type: 'config_get', robot_id: state.robotId, source_role: state.role })
     }
     state.ws.onclose = (e) => {
       state.connected = false
@@ -86,21 +433,77 @@ function connect(urlOverride) {
     state.ws.onmessage = (e) => {
       let data = null
       try { data = JSON.parse(e.data) } catch { data = null }
-      pushLog({ type: 'recv', dir: 'in', msg: e.data })
+      pushLog({
+        type: 'recv',
+        dir: 'in',
+        msg: e.data,
+        ...(data ? {
+          msg_type: data.type,
+          robot_id: data.robot_id,
+          source_role: data.source_role || data.role,
+          target_robot: data.target_robot,
+          target_role: data.target_role,
+        } : {})
+      })
       if (!data) return
+
+      if (data.type === 'config_sync') {
+        applyRemoteConfigMessage(data)
+        return
+      }
+
+      updateRobotRecord(data)
+
       if (data.type === 'result') {
-        state.results.unshift({ ts: nowTs(), ok: data.ok, detail: data.detail ?? '' })
+        state.results.unshift({
+          ts: nowTs(),
+          ok: data.ok,
+          detail: data.detail ?? '',
+          robot_id: data.robot_id ?? '',
+          action: data.action ?? '',
+          module: data.module ?? '',
+          text: data.text ?? '',
+          request_id: data.request_id ?? '',
+          source_role: data.source_role ?? '',
+          target_role: data.target_role ?? '',
+        })
         if (state.results.length > 200) state.results.pop()
       } else if (data.type === 'asr_text') {
         const txt = (data.text || '').trim()
         if (txt) {
           state.asr.unshift(`${nowTs()} | ${txt}`)
           if (state.asr.length > 500) state.asr.pop()
+          updateRecentAudioText(data, txt)
         }
+      } else if (data.type === 'ai_result') {
+        state.aiResults.unshift({
+          ts: nowTs(),
+          robot_id: data.robot_id ?? '',
+          source_robot_id: data.source_robot_id ?? '',
+          source_session: data.source_session ?? null,
+          source_seq: data.source_seq ?? null,
+          stage: data.stage ?? 'completed',
+          ok: data.ok,
+          detail: data.detail ?? '',
+          data: data.data ?? null,
+          action_result: data.action_result ?? null,
+          input_text: data.input_text ?? '',
+          triggered: data.triggered ?? null,
+          called: data.called ?? null,
+          skip_reason: data.skip_reason ?? '',
+        })
+        if (state.aiResults.length > 200) state.aiResults.pop()
       } else if (data.type === 'audio_saved' || data.type === 'audio_available') {
         state.audio.unshift({ ts: nowTs(), detail: data })
         if (state.audio.length > 200) state.audio.pop()
+      } else if (data.type === 'master_config_ack') {
+        pushLog({
+          type: 'info',
+          dir: 'sys',
+          msg: `主机配置已确认 version=${data.payload?.ai?.config_version ?? state.configVersion}`,
+        })
       }
+
       if (data.robot_id) state.online[data.robot_id] = Date.now()
     }
   } catch (e) {
@@ -120,8 +523,40 @@ function send(obj) {
     pushLog({ type: 'warn', dir: 'out', msg: '未连接，无法发送' })
     return
   }
-  state.ws.send(JSON.stringify(obj))
-  pushLog({ type: 'send', dir: 'out', msg: JSON.stringify(obj) })
+  const payload = {
+    robot_id: state.robotId,
+    role: state.role,
+    config_version: state.configVersion,
+    ts: Date.now() / 1000,
+    ...obj,
+  }
+  state.ws.send(JSON.stringify(payload))
+  pushLog({
+    type: 'send',
+    dir: 'out',
+    msg: JSON.stringify(payload),
+    msg_type: payload.type,
+    robot_id: payload.robot_id,
+    source_role: payload.role,
+    target_robot: payload.target_robot,
+    target_role: payload.target_role,
+    action: payload.payload?.action,
+  })
+}
+
+function pushConfigSync() {
+  saveConfig()
+  send({
+    type: 'config_update',
+    payload: {
+      app_config: buildAppConfigPayload(),
+    },
+  })
+}
+
+function markRecording(active, session = '') {
+  state.recordingActive = Boolean(active)
+  state.recordingSession = active ? String(session || '') : ''
 }
 
 const presets = computed(() => {
@@ -134,14 +569,25 @@ const presets = computed(() => {
 })
 
 export function useStore() {
-  return { state, connect, disconnect, send, presets, loadConfig, saveConfig }
+  return {
+    state,
+    connect,
+    disconnect,
+    send,
+    presets,
+    loadConfig,
+    saveConfig,
+    pushConfigSync,
+    buildAppConfigPayload,
+    applyAppConfig,
+    markRecording,
+  }
 }
 
-// 初始化
 if (typeof window !== 'undefined') {
   loadConfig()
 }
-// 刷新后自动重连
+
 if (typeof window !== 'undefined') {
   window.addEventListener('load', () => {
     if (state.autoReconnect && state.wsUrl) {

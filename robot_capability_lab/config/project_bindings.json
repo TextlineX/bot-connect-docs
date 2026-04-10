@@ -1,0 +1,184 @@
+{
+  "bindings": [
+    {
+      "id": "master.voice.tts",
+      "kind": "service",
+      "interface_name": "/aimdk_5Fmsgs/srv/PlayTts",
+      "project_status": "implemented",
+      "bridge": "frontend exec.tts -> master VoiceModule -> ROS2 PlayTts",
+      "entrypoint": "common/tts_client.py",
+      "notes": "已接真实 ROS2 TTS 服务"
+    },
+    {
+      "id": "master.preset.motion",
+      "kind": "service",
+      "interface_name": "/aimdk_5Fmsgs/srv/SetMcPresetMotion",
+      "project_status": "implemented",
+      "bridge": "frontend exec/preset -> ActionRouter -> ROS2 SetMcPresetMotion",
+      "entrypoint": "common/preset_motion_client.py",
+      "notes": "已接真实预设动作服务"
+    },
+    {
+      "id": "master.motion.locomotion",
+      "kind": "topic",
+      "interface_name": "/aima/mc/locomotion/velocity",
+      "project_status": "needs_real_adapter",
+      "bridge": "frontend cmd_vel -> master MotionModule",
+      "entrypoint": "master/handlers/motion.py",
+      "notes": "当前只更新本地 RobotSDK 状态，没有真正 publish 到 ROS2 locomotion topic"
+    },
+    {
+      "id": "master.audio.capture",
+      "kind": "topic",
+      "interface_name": "/aima/hal/audio/capture",
+      "project_status": "partial",
+      "bridge": "frontend audio_upload -> local ASR",
+      "entrypoint": "master/handlers/audio_asr.py",
+      "notes": "当前不是直接订阅机器人麦克风话题，而是前端上传音频到 PC 侧识别"
+    },
+    {
+      "id": "master.audio.vad",
+      "kind": "topic",
+      "interface_name": "/agent/process_audio_output",
+      "project_status": "not_connected",
+      "bridge": "",
+      "entrypoint": "",
+      "notes": "知识库存在，但当前项目未桥接"
+    },
+    {
+      "id": "master.ai.assistant",
+      "kind": "project_internal",
+      "interface_name": "ws://ai_assistant",
+      "project_status": "implemented",
+      "bridge": "asr_text -> ai_assistant -> action_router/result",
+      "entrypoint": "master/handlers/ai_assistant.py",
+      "notes": "这是项目内部链路，不是机器人原生 ROS2 接口"
+    },
+    {
+      "id": "master.preset.wave.right",
+      "kind": "preset_action",
+      "interface_name": "右手挥手",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.wave.left",
+      "kind": "preset_action",
+      "interface_name": "左手挥手",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.handshake.right",
+      "kind": "preset_action",
+      "interface_name": "右手握手",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.handshake.left",
+      "kind": "preset_action",
+      "interface_name": "左手握手",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.raise.right",
+      "kind": "preset_action",
+      "interface_name": "右手举手",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.raise.left",
+      "kind": "preset_action",
+      "interface_name": "左手举手",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.kiss.right",
+      "kind": "preset_action",
+      "interface_name": "右手飞吻",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.kiss.left",
+      "kind": "preset_action",
+      "interface_name": "左手飞吻",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.salute.right",
+      "kind": "preset_action",
+      "interface_name": "右手敬礼",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.salute.left",
+      "kind": "preset_action",
+      "interface_name": "左手敬礼",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.clap",
+      "kind": "preset_action",
+      "interface_name": "鼓掌",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.cheer",
+      "kind": "preset_action",
+      "interface_name": "加油",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.bow",
+      "kind": "preset_action",
+      "interface_name": "鞠躬",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    },
+    {
+      "id": "master.preset.dance",
+      "kind": "preset_action",
+      "interface_name": "动感光波",
+      "project_status": "implemented",
+      "bridge": "action_router 中文别名 -> SetMcPresetMotion",
+      "entrypoint": "master/handlers/action_router.py",
+      "notes": "项目已支持"
+    }
+  ]
+}

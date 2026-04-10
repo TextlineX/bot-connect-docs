@@ -1,0 +1,32 @@
+{
+  "id": "topic:/aima/hal/audio/capture",
+  "kind": "topic",
+  "name": "/aima/hal/audio/capture",
+  "data_type": "aimdk_msgs/msg/AudioCapture",
+  "category": "audio",
+  "doc_status": "实测",
+  "sources": [
+    {
+      "path": "知识库/02_传感器硬件抽象层/语音音频.md",
+      "section": "📡 话题与类型（实测）",
+      "description": "- `/aima/hal/audio/capture` → `aimdk_msgs/msg/AudioCapture`"
+    }
+  ],
+  "project_status": "partial",
+  "project_bindings": [
+    {
+      "id": "master.audio.capture",
+      "kind": "topic",
+      "interface_name": "/aima/hal/audio/capture",
+      "project_status": "partial",
+      "bridge": "frontend audio_upload -> local ASR",
+      "entrypoint": "master/handlers/audio_asr.py",
+      "notes": "当前不是直接订阅机器人麦克风话题，而是前端上传音频到 PC 侧识别"
+    }
+  ],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": true,
+    "skip_payload_echo_by_default": true
+  }
+}

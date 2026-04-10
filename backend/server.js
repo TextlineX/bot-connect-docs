@@ -17,44 +17,252 @@ const PORT = Number(process.env.WS_PORT || 8765);
 const AUTH_TOKEN = process.env.AUTH_TOKEN || '';
 const PING_INTERVAL = 20000; // ms
 const CONFIG_PATH = path.join(__dirname, 'config.json');
+const DEFAULT_FEATURE_FLAGS = {
+  showControl: true,
+  showTTS: true,
+  showASR: true,
+  showAI: true,
+  showAudio: true,
+  showLogs: true,
+  showMonitor: true,
+  showSettings: true,
+};
+const BROADCAST_TYPES = new Set([
+  'status',
+  'capabilities',
+  'result',
+  'ai_result',
+  'master_config_ack',
+  'audio_saved',
+  'audio_available',
+]);
 
-// 加载/保存配置（用于自动 AI 应答 -> TTS）
-function loadConfig() {
-  const def = {
-    auto_ai_reply: false,
-    ai_prefix: '收到：',
-    tts_robot_id: 'master-01',
+function deepMerge(base, extra) {
+  const merged = { ...(base || {}) };
+  Object.entries(extra || {}).forEach(([key, value]) => {
+    if (
+      merged[key]
+      && typeof merged[key] === 'object'
+      && !Array.isArray(merged[key])
+      && value
+      && typeof value === 'object'
+      && !Array.isArray(value)
+    ) {
+      merged[key] = deepMerge(merged[key], value);
+      return;
+    }
+    merged[key] = value;
+  });
+  return merged;
+}
+
+function defaultConfig() {
+  return {
+    version: 1,
+    updated_at: new Date().toISOString(),
+    frontend: {
+      controller_robot_id: 'controller',
+      role: 'controller',
+      ws_url: '',
+      auto_reconnect: true,
+      targets: {
+        brain_robot_id: 'master-01',
+        control_robot_id: 'slave-01',
+      },
+      display: {
+        auto_scroll: true,
+      },
+      feature_flags: { ...DEFAULT_FEATURE_FLAGS },
+    },
+    backend: {
+      auto_ai_reply: false,
+      ai_prefix: '收到：',
+      tts_robot_id: 'master-01',
+    },
+    master: {
+      robot_id: 'master-01',
+      ai: {
+        enabled: false,
+        auto_tts: true,
+        allow_action_execution: false,
+        forward_action_to_slave: false,
+        forward_action_target: 'slave-01',
+        tts_target_robot: 'slave-01',
+        trigger_on_partial: false,
+        behavior_lock_enabled: true,
+        behavior_lock_timeout_sec: 20,
+      },
+    },
+    slave: {
+      robot_id: 'slave-01',
+    },
   };
+}
+
+function normalizeConfig(raw) {
+  const base = defaultConfig();
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return base;
+  }
+  const legacyBackend = {};
+  if (raw.auto_ai_reply !== undefined) legacyBackend.auto_ai_reply = raw.auto_ai_reply;
+  if (raw.ai_prefix !== undefined) legacyBackend.ai_prefix = raw.ai_prefix;
+  if (raw.tts_robot_id !== undefined) legacyBackend.tts_robot_id = raw.tts_robot_id;
+  const merged = deepMerge(base, raw);
+  if (Object.keys(legacyBackend).length) {
+    merged.backend = deepMerge(merged.backend, legacyBackend);
+  }
+  merged.version = Number(merged.version || 1);
+  merged.updated_at = merged.updated_at || new Date().toISOString();
+  return merged;
+}
+
+function loadConfig() {
   try {
-    const raw = fs.readFileSync(CONFIG_PATH, 'utf-8');
-    const cfg = JSON.parse(raw);
-    return { ...def, ...cfg };
+    const raw = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+    return normalizeConfig(raw);
   } catch {
-    return def;
+    return defaultConfig();
   }
 }
+
 function saveConfig(cfg) {
-  try { fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2)); } catch (e) { log('save config error', e.message); }
+  try {
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2));
+  } catch (e) {
+    log('save config error', e.message);
+  }
 }
+
+function bumpConfigVersion(nextConfig) {
+  const current = Number(config?.version || 0);
+  const next = normalizeConfig(nextConfig);
+  next.version = Math.max(current + 1, Number(next.version || 0) || 0);
+  next.updated_at = new Date().toISOString();
+  return next;
+}
+
+function backendConfig() {
+  return normalizeConfig(config).backend || {};
+}
+
 let config = loadConfig();
 
 // robot_id -> ws
 const clients = new Map();
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+// 缓存音频分片：robot_id -> {chunks:Buffer[], bytes:number, mime:string, ts:number, timer:Timeout, target:string, session:any, seq:any}
+const pendingAudio = new Map();
 const pythonBin = process.env.PYTHON_BIN || 'python';
 const ffmpegBin = process.env.FFMPEG_BIN || 'ffmpeg';
 const modelPath = process.env.MODEL_PATH;
-if (modelPath) {
+const ASR_MODE = (process.env.ASR_MODE || 'auto').toLowerCase(); // auto | local | master | off
+if (ASR_MODE === 'off') {
+  console.log('[ASR] ASR_MODE=off，本地识别已禁用');
+} else if (ASR_MODE === 'master') {
+  console.log('[ASR] ASR_MODE=master，本地识别由 master 负责，后端不启 worker');
+} else if (modelPath) {
   console.log(`[ASR] MODEL_PATH=${modelPath}, PYTHON_BIN=${pythonBin}`);
 } else {
-  console.log('[ASR] MODEL_PATH 未设置，本地识别禁用');
+  console.log('[ASR] MODEL_PATH 未设置，本地识别禁用（若需本地识别请设置 MODEL_PATH 或 ASR_MODE=local）');
+}
+
+function guessRole(robotId = '') {
+  const rid = String(robotId || '').trim().toLowerCase();
+  if (rid.startsWith('master')) return 'master';
+  if (rid.startsWith('slave')) return 'slave';
+  if (rid.startsWith('controller')) return 'controller';
+  return 'robot';
+}
+
+function buildRoleConfig(role) {
+  if (role === 'master') {
+    return {
+      robot_id: config.master?.robot_id || 'master-01',
+      config_version: config.version,
+      ai: deepMerge({}, config.master?.ai || {}),
+    };
+  }
+  if (role === 'slave') {
+    return {
+      robot_id: config.slave?.robot_id || 'slave-01',
+      config_version: config.version,
+      routing: {
+        control_robot_id: config.frontend?.targets?.control_robot_id || 'slave-01',
+        brain_robot_id: config.frontend?.targets?.brain_robot_id || 'master-01',
+      },
+    };
+  }
+  if (role === 'controller') {
+    return {
+      robot_id: config.frontend?.controller_robot_id || 'controller',
+      config_version: config.version,
+      frontend: deepMerge({}, config.frontend || {}),
+      backend: deepMerge({}, config.backend || {}),
+    };
+  }
+  return {
+    config_version: config.version,
+  };
+}
+
+function buildConfigSyncPayload(reason = 'sync', role = null) {
+  return {
+    type: 'config_sync',
+    robot_id: 'server',
+    role: 'server',
+    config_version: Number(config.version || 0),
+    ts: Date.now() / 1000,
+    payload: {
+      reason,
+      version: Number(config.version || 0),
+      updated_at: config.updated_at || new Date().toISOString(),
+      config: deepMerge({}, config),
+      role,
+      role_config: buildRoleConfig(role),
+    },
+  };
+}
+
+function sendConfigSync(ws, reason = 'sync') {
+  if (!ws) return;
+  send(ws, buildConfigSyncPayload(reason, ws._role || guessRole(ws._rid)));
+}
+
+function syncAllClients(reason = 'sync') {
+  for (const [, sock] of clients.entries()) {
+    sendConfigSync(sock, reason);
+  }
+}
+
+function decorateIncoming(fromRid, data) {
+  const sender = clients.get(fromRid);
+  const sourceRole = data.source_role || sender?._role || guessRole(fromRid);
+  const decorated = { ...data };
+  if (!decorated.robot_id) decorated.robot_id = fromRid;
+  if (!decorated.source_robot_id) decorated.source_robot_id = fromRid || decorated.robot_id || '';
+  if (!decorated.source_role) decorated.source_role = sourceRole;
+  if (!decorated.config_version) {
+    decorated.config_version = Number(sender?._configVersion || config.version || 0);
+  }
+  if (decorated.target_robot) {
+    const targetWs = clients.get(decorated.target_robot);
+    if (targetWs && !decorated.target_role) {
+      decorated.target_role = targetWs._role || guessRole(decorated.target_robot);
+    }
+  }
+  return decorated;
 }
 
 // 持久化 ASR worker
 let asrWorker = null;
 function startAsrWorker() {
-  if (!modelPath) return;
+  if (ASR_MODE === 'off' || ASR_MODE === 'master') return;
+  if (!modelPath) {
+    if (ASR_MODE === 'local') log('[ASR] 本地识别强制开启但 MODEL_PATH 缺失，跳过启动');
+    return;
+  }
   const workerPath = path.join(__dirname, 'asr_worker.py');
   asrWorker = spawn(pythonBin, [workerPath], {
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -72,13 +280,15 @@ function startAsrWorker() {
         if (res.error) {
           log('asr_worker error', res.error);
         }
-        // 无论是否有文本，都回一条 asr_text，前端可见反馈
         const payload = {
           type: 'asr_text',
           text,
           robot_id: res.robot_id || 'asr-local',
           ts: Date.now() / 1000,
           detail: text ? 'ok' : 'empty',
+          session: res.session || null,
+          seq: res.seq || null,
+          final: Boolean(res.final),
         };
         log(`asr_text(local): ${text || '<empty>'}`);
         for (const [, sock] of clients.entries()) {
@@ -103,14 +313,34 @@ function send(ws, obj) {
   if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
 }
 
+function broadcast(obj, excludeRid = null) {
+  for (const [rid, sock] of clients.entries()) {
+    if (excludeRid && rid === excludeRid) continue;
+    send(sock, obj);
+  }
+}
+
+function isRawPcmMime(mime = '') {
+  const lower = String(mime || '').toLowerCase();
+  return lower.startsWith('audio/raw') || lower.startsWith('audio/pcm') || lower.includes('s16_le');
+}
+
 function register(ws, hello) {
   const { robot_id: rid, token } = hello;
   if (!rid) throw new Error('missing robot_id');
   if (AUTH_TOKEN && token !== AUTH_TOKEN) throw new Error('invalid token');
   clients.set(rid, ws);
   ws._rid = rid;
-  log(`robot ${rid} connected, online=${clients.size}`);
-  send(ws, { type: 'ack', robot_id: rid });
+  ws._role = hello.role || guessRole(rid);
+  ws._configVersion = Number(hello.config_version || 0);
+  log(`robot ${rid} connected role=${ws._role} cfg=${ws._configVersion} online=${clients.size}`);
+  send(ws, {
+    type: 'ack',
+    robot_id: rid,
+    role: ws._role,
+    config_version: Number(config.version || 0),
+  });
+  sendConfigSync(ws, ws._configVersion === Number(config.version || 0) ? 'hello' : 'stale');
 }
 
 function unregister(ws) {
@@ -121,32 +351,75 @@ function unregister(ws) {
 }
 
 function route(fromRid, data) {
-  if (data.type === 'audio_upload') {
-    saveAudio(fromRid, data);
-    forwardAudioChunks(fromRid, data);
+  const message = decorateIncoming(fromRid, data);
+  const sender = clients.get(fromRid);
+  if (sender && message.config_version !== undefined) {
+    sender._configVersion = Number(message.config_version || sender._configVersion || 0);
+  }
+
+  if (
+    sender
+    && Number(message.config_version || 0) < Number(config.version || 0)
+    && message.type !== 'config_sync_ack'
+  ) {
+    sendConfigSync(sender, 'stale');
+  }
+
+  if (message.type === 'audio_upload') {
+    handleAudioUpload(fromRid, message);
     return;
   }
-  if (data.type === 'config_update') {
-    if (data.payload && typeof data.payload === 'object') {
-      config = { ...config, ...data.payload };
-      saveConfig(config);
-      log('config updated', JSON.stringify(config));
+  if (message.type === 'config_get') {
+    sendConfigSync(sender, 'requested');
+    return;
+  }
+  if (message.type === 'config_sync_ack') {
+    if (sender) {
+      sender._configVersion = Number(message.config_version || sender._configVersion || config.version || 0);
     }
     return;
   }
-  if (data.type === 'asr_text') {
-    const text = data.text || (data.payload && data.payload.text) || '';
+  if (message.type === 'config_update') {
+    if (message.payload && typeof message.payload === 'object') {
+      const nextPayload = message.payload.app_config && typeof message.payload.app_config === 'object'
+        ? message.payload.app_config
+        : message.payload;
+      config = bumpConfigVersion(deepMerge(config, nextPayload));
+      saveConfig(config);
+      log('config updated', JSON.stringify({ version: config.version, by: fromRid }));
+      syncAllClients('config_update');
+    }
+    return;
+  }
+  if (message.type === 'master_config_update') {
+    if (message.payload && typeof message.payload === 'object') {
+      const partial = {
+        master: {
+          robot_id: config.master?.robot_id || 'master-01',
+          ai: deepMerge({}, message.payload.ai || message.payload),
+        },
+      };
+      config = bumpConfigVersion(deepMerge(config, partial));
+      saveConfig(config);
+      log('master config updated', JSON.stringify({ version: config.version, by: fromRid }));
+      syncAllClients('master_config_update');
+    }
+    return;
+  }
+  if (message.type === 'asr_text') {
+    const text = message.text || (message.payload && message.payload.text) || '';
     if (!text || !text.trim()) {
       // 空文本不广播，避免覆盖有效结果
       log(`asr_text from ${fromRid} skipped (empty)`);
       return;
     }
     log(`asr_text from ${fromRid}: ${text}`);
-    for (const [, sock] of clients.entries()) send(sock, data);
+    for (const [, sock] of clients.entries()) send(sock, message);
     // 可选：自动 AI 回复 -> TTS
-    if (config.auto_ai_reply) {
-      const ttsText = `${config.ai_prefix || ''}${text}`.trim();
-      const target = config.tts_robot_id || 'master-01';
+    const cfg = backendConfig();
+    if (cfg.auto_ai_reply) {
+      const ttsText = `${cfg.ai_prefix || ''}${text}`.trim();
+      const target = cfg.tts_robot_id || 'master-01';
       const sock = clients.get(target);
       if (sock) {
         send(sock, {
@@ -154,6 +427,9 @@ function route(fromRid, data) {
           action: 'tts',
           payload: { text: ttsText },
           robot_id: target,
+          source_robot_id: fromRid,
+          source_role: message.source_role,
+          config_version: Number(config.version || 0),
           ts: Date.now() / 1000,
         });
         log(`auto TTS -> ${target}: ${ttsText}`);
@@ -163,44 +439,25 @@ function route(fromRid, data) {
     }
     return;
   }
-  const target = data.target_robot;
-  if (target) {
-    const t = clients.get(target);
-    if (t) send(t, data);
-    else log(`target ${target} offline, drop ${data.type}`);
-  } else {
-    log(`recv ${fromRid}: ${data.type}`);
-  }
-}
-
-// 将 audio_upload 切块转发，避免 WS 帧超限
-function forwardAudioChunks(fromRid, data) {
-  const target = data.target_robot || 'master-01';
-  const sock = clients.get(target);
-  if (!sock) {
-    log(`target ${target} offline, drop audio_upload`);
+  if (BROADCAST_TYPES.has(message.type)) {
+    broadcast(message, fromRid);
+    log(`broadcast ${message.type} from ${fromRid}`);
     return;
   }
-  const payload = data.payload || {};
-  const b64 = payload.data || '';
-  const mime = payload.mime || 'audio/webm';
-  const max = 512 * 1024; // base64 chunk size (~512KB)
-  for (let i = 0; i < b64.length; i += max) {
-    const chunk = b64.slice(i, i + max);
-    send(sock, {
-      type: 'audio_upload',
-      robot_id: fromRid,
-      target_robot: target,
-      payload: { mime, data: chunk },
-      ts: Date.now() / 1000,
-    });
+  const target = message.target_robot;
+  if (target) {
+    const t = clients.get(target);
+    if (t) send(t, message);
+    else log(`target ${target} offline, drop ${message.type}`);
+  } else {
+    log(`recv ${fromRid}: ${message.type}`);
   }
 }
 
 const wss = new WebSocket.Server({ host: HOST, port: PORT });
 log(`WebSocket server on ws://${HOST}:${PORT}`);
 
-function saveAudio(fromRid, data) {
+function handleAudioUpload(fromRid, data) {
   try {
     const payload = data.payload || {};
     const b64 = payload.data;
@@ -208,49 +465,188 @@ function saveAudio(fromRid, data) {
       log('audio_upload missing data');
       return;
     }
-    const buf = Buffer.from(b64, 'base64');
     const mime = (payload.mime || '').toLowerCase();
-    let ext = 'raw';
-    if (mime.includes('webm')) ext = 'webm';
-    else if (mime.includes('wav')) ext = 'wav';
-    else if (mime.includes('ogg')) ext = 'ogg';
+    const isFinal = payload.final === true;
+    const buf = Buffer.from(b64, 'base64');
+
+    if (isRawPcmMime(mime)) {
+      handleRawPcmUpload(fromRid, data, payload, buf, mime, isFinal);
+      return;
+    }
+
+    let entry = pendingAudio.get(fromRid);
+    if (!entry) {
+      entry = {
+        chunks: [],
+        bytes: 0,
+        mime,
+        ts: Date.now(),
+        timer: null,
+        target: data.target_robot || 'master-01',
+        session: payload.session || null,
+        seq: payload.seq || null,
+      };
+    }
+    entry.chunks.push(buf);
+    entry.bytes += buf.length;
+    if (mime) entry.mime = mime;
+    entry.ts = Date.now();
+    entry.target = data.target_robot || entry.target || 'master-01';
+    entry.session = payload.session ?? entry.session ?? null;
+    entry.seq = payload.seq ?? entry.seq ?? null;
+    pendingAudio.set(fromRid, entry);
+
+    if (entry.timer) clearTimeout(entry.timer);
+    // 若前端未标记 final，则在 1200ms 未收到新分片时自动终止，避免长时间挂起
+    entry.timer = setTimeout(() => finalizePendingAudio(fromRid, entry, 'timeout'), 1200);
+
+    if (!isFinal) {
+      log(`audio_upload chunk from ${fromRid} bytes=${buf.length} cached total=${entry.bytes}`);
+      return;
+    }
+
+    finalizePendingAudio(fromRid, entry, 'final');
+  } catch (e) {
+    log('audio_upload error', e.message);
+  }
+}
+
+function handleRawPcmUpload(fromRid, data, payload, buf, mime, isFinal) {
+  try {
+    log(`audio_upload pcm from ${fromRid} bytes=${buf.length} final=${isFinal}`);
+
+    const ws = clients.get(fromRid);
+    if (ws) {
+      send(ws, {
+        type: 'audio_saved',
+        size: buf.length,
+        robot_id: fromRid,
+        session: payload.session || null,
+        seq: payload.seq || null,
+        final: isFinal,
+      });
+    }
+
+    if (modelPath && asrWorker && asrWorker.stdin.writable) {
+      log(`asr_worker pcm bytes=${buf.length} (raw ${mime || 'unknown'})`);
+      asrWorker.stdin.write(JSON.stringify({
+        data: buf.toString('base64'),
+        robot_id: fromRid,
+        session: payload.session || null,
+        seq: payload.seq || null,
+        final: isFinal,
+      }) + '\n');
+    }
+
+    forwardMergedAudio(
+      fromRid,
+      buf,
+      mime,
+      data.target_robot || 'master-01',
+      payload.session || null,
+      payload.seq || null,
+      isFinal
+    );
+  } catch (e) {
+    log('audio_upload raw pcm error', e.message);
+  }
+}
+
+function finalizePendingAudio(fromRid, entry, reason = 'final') {
+  try {
+    if (!entry || !entry.chunks || !entry.chunks.length) return;
+    pendingAudio.delete(fromRid);
+    if (entry.timer) clearTimeout(entry.timer);
+
+    // 合并完整音频
+    const merged = Buffer.concat(entry.chunks);
+    const mime = entry.mime || 'audio/webm';
+    const ext = mime.includes('webm') ? 'webm' : mime.includes('wav') ? 'wav' : mime.includes('ogg') ? 'ogg' : 'raw';
     const filename = `${Date.now()}_${fromRid}.${ext}`;
     const filepath = path.join(uploadDir, filename);
-    fs.writeFileSync(filepath, buf);
-    log(`audio_upload saved ${filename} (${buf.length} bytes)`);
+    fs.writeFileSync(filepath, merged);
+    log(`audio_upload saved ${filename} (${merged.length} bytes, chunks=${entry.chunks.length}, reason=${reason})`);
+
     // 回发给发送方确认
     const ws = clients.get(fromRid);
     if (ws) {
-      send(ws, { type: 'audio_saved', file: filename, size: buf.length, robot_id: fromRid });
+      send(ws, { type: 'audio_saved', file: filename, size: merged.length, robot_id: fromRid });
     }
-    // 广播给其他客户端有新音频（含原始数据，方便 ASR 直连使用）
+    // 广播给其他客户端有新音频（含完整数据，方便直连使用）
+    const broadcastMsg = {
+      type: 'audio_upload',
+      robot_id: fromRid,
+      payload: {
+        mime,
+        data: merged.toString('base64'),
+        final: true,
+        session: entry.session || null,
+        seq: entry.seq || null,
+      },
+      saved_file: filename,
+      ts: Date.now()/1000
+    };
     for (const [rid, sock] of clients.entries()) {
       if (rid !== fromRid) {
-        send(sock, { ...data, saved_file: filename, ts: Date.now()/1000 });
+        send(sock, broadcastMsg);
       }
     }
     // 本地调用 Python Vosk 识别并广播 asr_text（需要设置 MODEL_PATH）
     if (modelPath && asrWorker && asrWorker.stdin.writable) {
-      // 将压缩音频转成 16k mono s16le，再送给 Vosk
-      const pcmB64 = transcodeToPcm(b64, mime);
+      const pcmB64 = transcodeToPcm(merged.toString('base64'), mime);
       if (pcmB64) {
         const pcmLen = Buffer.from(pcmB64, 'base64').length;
-        log(`asr_worker pcm bytes=${pcmLen} (from ${buf.length} bytes ${mime || 'unknown'})`);
+        log(`asr_worker pcm bytes=${pcmLen} (from ${merged.length} bytes ${mime || 'unknown'})`);
         asrWorker.stdin.write(JSON.stringify({
           data: pcmB64,
           robot_id: fromRid,
-          session: payload.session || null,
-          seq: payload.seq || null,
-          // 单块或明确标记 final 的视为最终结果，触发 FinalResult
-          final: payload.final === true || buf.length < 1024 * 1024
+          session: entry.session || null,
+          seq: entry.seq || null,
+          final: true
         }) + '\n');
       } else {
         log('asr_worker transcode failed, skip');
       }
     }
+    // 将合并后的完整音频直接转发给目标
+    forwardMergedAudio(
+      fromRid,
+      merged,
+      mime,
+      entry.target || 'master-01',
+      entry.session || null,
+      entry.seq || null,
+      true
+    );
   } catch (e) {
     log('audio_upload error', e.message);
   }
+}
+
+// 将合并后的完整音频转发给目标（默认 master-01）；音频通常较小，直接单帧发送
+function forwardMergedAudio(fromRid, buffer, mime, target, session = null, seq = null, final = true) {
+  const sock = clients.get(target);
+  if (!sock) {
+    log(`target ${target} offline, drop merged audio_upload`);
+    return;
+  }
+  send(sock, {
+    type: 'audio_upload',
+    robot_id: fromRid,
+    source_robot_id: fromRid,
+    source_role: guessRole(fromRid),
+    target_robot: target,
+    target_role: sock._role || guessRole(target),
+    config_version: Number(config.version || 0),
+    payload: {
+      mime: mime || 'audio/webm',
+      data: buffer.toString('base64'),
+      final,
+      session,
+      seq,
+    },
+    ts: Date.now() / 1000,
+  });
 }
 
 // 将任意音频 Base64 转 16k mono s16le Base64。若已是 raw/pcm 直接返回原始。
@@ -273,6 +669,8 @@ function transcodeToPcm(b64, mime = '') {
     if (r.status === 0 && r.stdout && r.stdout.length) {
       return r.stdout.toString('base64');
     }
+    const stderrLine = (r.stderr ? r.stderr.toString() : '').split(/\r?\n/)[0] || 'no stderr';
+    log(`ffmpeg transcode exit=${r.status} msg=${stderrLine}`);
     return null;
   } catch (e) {
     log('transcode error', e.message);

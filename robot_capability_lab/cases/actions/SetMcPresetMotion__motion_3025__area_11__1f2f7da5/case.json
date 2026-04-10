@@ -1,0 +1,24 @@
+{
+  "id": "preset_action:抓屁股",
+  "kind": "preset_action",
+  "name": "抓屁股",
+  "data_type": "SetMcPresetMotion",
+  "category": "motion",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/control_mod/preset_motion.md",
+      "section": "预设动作定义",
+      "description": "同上"
+    }
+  ],
+  "motion_id": 3025,
+  "area_id": 11,
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

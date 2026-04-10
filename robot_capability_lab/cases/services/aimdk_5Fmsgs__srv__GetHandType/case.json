@@ -1,0 +1,27 @@
+{
+  "id": "service:/aimdk_5Fmsgs/srv/GetHandType",
+  "kind": "service",
+  "name": "/aimdk_5Fmsgs/srv/GetHandType",
+  "data_type": "GetHandType",
+  "category": "endeffector",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/control_mod/endeffector.md",
+      "section": "查询手部类型服务",
+      "description": "主动查询手部类型"
+    },
+    {
+      "path": "知识库/官方/5_interface/control_mod/endeffector.md",
+      "section": "服务名称: /aimdk_5Fmsgs/srv/GetHandType",
+      "description": "# 服务名称: /aimdk_5Fmsgs/srv/GetHandType"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

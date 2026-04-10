@@ -1,0 +1,27 @@
+{
+  "id": "service:/aimdk_5Fmsgs/srv/GetAllJointState",
+  "kind": "service",
+  "name": "/aimdk_5Fmsgs/srv/GetAllJointState",
+  "data_type": "GetAllJointState",
+  "category": "joint",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/control_mod/joint_control.md",
+      "section": "关节状态查询服务",
+      "description": "主动查询关节状态"
+    },
+    {
+      "path": "知识库/官方/5_interface/control_mod/joint_control.md",
+      "section": "服务名称: /aimdk_5Fmsgs/srv/GetAllJointState",
+      "description": "# 服务名称: /aimdk_5Fmsgs/srv/GetAllJointState"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

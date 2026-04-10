@@ -3,20 +3,29 @@
     <article class="card">
       <div class="card-head">
         <h3>动作面板</h3>
-        <span class="pill">预指令</span>
+        <span class="pill">官方映射</span>
       </div>
       <div class="actions">
-        <button class="btn dark small" v-for="a in actions" :key="a.label" @click="sendAction(a)">
-          {{ a.label }}
-        </button>
+        <div class="group">
+          <div class="group-title">基础移动</div>
+          <button class="btn dark small" v-for="a in moveActions" :key="a.label" @click="sendAction(a)">
+            {{ a.label }}
+          </button>
+        </div>
+        <div class="group">
+          <div class="group-title">官方预设</div>
+          <button class="btn dark small" v-for="a in presetActions" :key="a.label" @click="sendAction(a)">
+            {{ a.label }}
+          </button>
+        </div>
       </div>
-      <div class="hint">可根据需要补充具体动作指令。</div>
+      <div class="hint">按钮 -> WS exec/cmd_vel，已与 master 动作路由官方预设对齐；如需再扩展可直接追加。</div>
     </article>
 
     <article class="card">
       <div class="card-head">
         <h3>运动控制</h3>
-        <span class="pill">cmd_vel</span>
+        <span class="pill">cmd_vel → {{ state.controlTargetRobot }}</span>
       </div>
       <div class="field duo">
         <div><label>线速度 (m/s)</label><input type="number" step="0.05" v-model.number="linear" /></div>
@@ -42,12 +51,30 @@ import { useStore } from '../store'
 
 const { state, send } = useStore()
 
-const actions = [
+const moveActions = [
   { label: '前进', payload: { linear: 0.2, angular: 0 } },
   { label: '后退', payload: { linear: -0.2, angular: 0 } },
   { label: '左转', payload: { linear: 0, angular: 0.3 } },
   { label: '右转', payload: { linear: 0, angular: -0.3 } },
-  { label: '跳舞', payload: { action: 'dance' } },
+  { label: '停止', payload: { action: 'motion.stop' } },
+]
+
+// 官方/项目预设动作映射（含左右区分）
+const presetActions = [
+  { label: '挥手(右)', payload: { action: 'preset.run', name: 'wave', motion_id: 1002, area_id: 2 } },
+  { label: '挥手(左)', payload: { action: 'preset.run', name: 'wave_left', motion_id: 1002, area_id: 1 } },
+  { label: '握手(右)', payload: { action: 'preset.run', name: 'handshake', motion_id: 1003, area_id: 2 } },
+  { label: '握手(左)', payload: { action: 'preset.run', name: 'handshake_left', motion_id: 1003, area_id: 1 } },
+  { label: '举手(右)', payload: { action: 'preset.run', name: 'raise_hand', motion_id: 1001, area_id: 2 } },
+  { label: '举手(左)', payload: { action: 'preset.run', name: 'raise_hand_left', motion_id: 1001, area_id: 1 } },
+  { label: '飞吻(右)', payload: { action: 'preset.run', name: 'kiss', motion_id: 1004, area_id: 2 } },
+  { label: '飞吻(左)', payload: { action: 'preset.run', name: 'kiss_left', motion_id: 1004, area_id: 1 } },
+  { label: '敬礼(右)', payload: { action: 'preset.run', name: 'salute', motion_id: 1013, area_id: 2 } },
+  { label: '敬礼(左)', payload: { action: 'preset.run', name: 'salute_left', motion_id: 1013, area_id: 1 } },
+  { label: '鼓掌', payload: { action: 'preset.run', name: 'clap', motion_id: 3017, area_id: 11 } },
+  { label: '加油', payload: { action: 'preset.run', name: 'cheer', motion_id: 3011, area_id: 11 } },
+  { label: '鞠躬', payload: { action: 'preset.run', name: 'bow', motion_id: 3001, area_id: 11 } },
+  { label: '跳舞', payload: { action: 'preset.run', name: 'dance', motion_id: 3007, area_id: 11 } },
 ]
 
 const linear = ref(0.2)
@@ -60,7 +87,7 @@ function sendAction(a) {
     send({
       type: 'cmd_vel',
       robot_id: state.robotId,
-      target_robot: state.targetRobot,
+      target_robot: state.controlTargetRobot,
       payload: a.payload,
       ts: Date.now()/1000,
     })
@@ -68,8 +95,8 @@ function sendAction(a) {
     send({
       type: 'exec',
       robot_id: state.robotId,
-      target_robot: state.targetRobot,
-      payload: { action: a.payload.action || 'custom' },
+      target_robot: state.controlTargetRobot,
+      payload: a.payload,
       ts: Date.now()/1000,
     })
   }
@@ -79,7 +106,7 @@ function sendCmd() {
   send({
     type: 'cmd_vel',
     robot_id: state.robotId,
-    target_robot: state.targetRobot,
+    target_robot: state.controlTargetRobot,
     payload: { linear: Number(linear.value), angular: Number(angular.value) },
     ts: Date.now()/1000,
   })
@@ -96,5 +123,7 @@ function sendCustom() {
 </script>
 
 <style scoped>
-.actions { display:flex; flex-wrap:wrap; gap:10px; }
+.actions { display:flex; flex-wrap:wrap; gap:12px; }
+.group { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start; }
+.group-title { width:100%; font-size:13px; color:#666; font-weight:600; }
 </style>

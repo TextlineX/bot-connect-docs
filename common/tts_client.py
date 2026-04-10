@@ -36,11 +36,16 @@ class TtsClient(Node):
 
 g_rclpy_inited = False
 _g_node = None
+_owns_rclpy = False
 
 def send_tts(text: str):
-    global g_rclpy_inited, _g_node
+    global g_rclpy_inited, _g_node, _owns_rclpy
     if not g_rclpy_inited:
-        rclpy.init(args=None)
+        if not rclpy.ok():
+            rclpy.init(args=None)
+            _owns_rclpy = True
+        else:
+            _owns_rclpy = False
         service_name = os.getenv('TTS_SERVICE', '/aimdk_5Fmsgs/srv/PlayTts')
         _g_node = TtsClient(service_name)
         g_rclpy_inited = True
@@ -48,9 +53,11 @@ def send_tts(text: str):
 
 
 def shutdown():
-    global g_rclpy_inited, _g_node
+    global g_rclpy_inited, _g_node, _owns_rclpy
     if g_rclpy_inited:
         _g_node.destroy_node()
-        rclpy.shutdown()
+        if _owns_rclpy and rclpy.ok():
+            rclpy.shutdown()
         g_rclpy_inited = False
         _g_node = None
+        _owns_rclpy = False

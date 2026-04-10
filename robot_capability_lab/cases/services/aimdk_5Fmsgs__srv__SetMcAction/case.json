@@ -1,0 +1,27 @@
+{
+  "id": "service:/aimdk_5Fmsgs/srv/SetMcAction",
+  "kind": "service",
+  "name": "/aimdk_5Fmsgs/srv/SetMcAction",
+  "data_type": "SetMcAction",
+  "category": "motion",
+  "doc_status": "已文档化",
+  "sources": [
+    {
+      "path": "知识库/官方/5_interface/control_mod/modeswitch.md",
+      "section": "设置运动模式服务",
+      "description": "设置运动模式"
+    },
+    {
+      "path": "知识库/官方/5_interface/control_mod/modeswitch.md",
+      "section": "服务名称: /aimdk_5Fmsgs/srv/SetMcAction",
+      "description": "# 服务名称: /aimdk_5Fmsgs/srv/SetMcAction"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}

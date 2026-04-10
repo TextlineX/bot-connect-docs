@@ -1,0 +1,22 @@
+{
+  "id": "topic:/aima/hds/monitor/info",
+  "kind": "topic",
+  "name": "/aima/hds/monitor/info",
+  "data_type": "aimdk_msgs/msg/HdsMonitor",
+  "category": "other",
+  "doc_status": "实测",
+  "sources": [
+    {
+      "path": "知识库/02_传感器硬件抽象层/系统监控诊断.md",
+      "section": "📡 基础通信参数（实测类型）",
+      "description": "- `/aima/hds/monitor/info` → `aimdk_msgs/msg/HdsMonitor`"
+    }
+  ],
+  "project_status": "not_connected",
+  "project_bindings": [],
+  "verification": {
+    "needs_runtime_validation": true,
+    "high_bandwidth": false,
+    "skip_payload_echo_by_default": false
+  }
+}
