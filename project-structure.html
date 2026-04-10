@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Bot Connect 项目结构</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      margin: 0;
+      background: #0b1120;
+      color: #f8fbff;
+    }
+    header {
+      padding: 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, #151b3b, #0e1422);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      letter-spacing: 0.12em;
+    }
+    header p {
+      margin: 0.4rem 0 0;
+      color: #9fb3ff;
+    }
+    .layout {
+      max-width: 1100px;
+      margin: 2rem auto 4rem;
+      padding: 0 1.25rem;
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    section.card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1.4rem;
+      box-shadow: 0 24px 40px rgba(5, 8, 15, 0.7);
+    }
+    section.card h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      letter-spacing: 0.04em;
+      color: #aecdff;
+    }
+    section.card ul {
+      padding-left: 1.1rem;
+      margin: 0;
+      line-height: 1.6;
+      color: #d9e4ff;
+    }
+    section.card table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #f0f5ff;
+    }
+    section.card table th,
+    section.card table td {
+      padding: 0.4rem;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      text-align: left;
+    }
+    section.card table th {
+      color: #9fb3ff;
+      font-weight: 500;
+    }
+    #diagram {
+      background: #05090f;
+      border-radius: 16px;
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: #7f8cb8;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bot Connect 项目结构总览</h1>
+    <p>目录、组件、运行流程、机器人/前端之间的交互逻辑都在同一个页面里。</p>
+  </header>
+
+  <div class="layout">
+    <section class="card">
+      <h2>核心目录（来自 README）</h2>
+      <table>
+        <tr><th>目录</th><th>职责</th></tr>
+        <tr><td><code>backend/</code></td><td>WebSocket 路由服务、音频上传、Vosk ASR Worker、server.js 全部逻辑。</td></tr>
+        <tr><td><code>frontend/</code></td><td>Vue + Vite 控制台；App.vue 负责顶栏/路由、store.js 管理 WS 状态与日志。</td></tr>
+        <tr><td><code>master/</code></td><td>主机客户端（ROS/TTS + preset motion），连接后端并执行 cmd_vel/tts。</td></tr>
+        <tr><td><code>slave/</code></td><td>从机示例，可扩展来模拟机器人反向/被动控制回调。</td></tr>
+        <tr><td><code>common/</code></td><td>通用工具：<code>ws_client.py</code>、<code>tts_client.py</code>、preset motion 连接。</td></tr>
+        <tr><td><code>scripts/</code></td><td>启动脚本、同步 master/robot、录制/转换音频、能力 lab 自动化。</td></tr>
+        <tr><td><code>robot_capability_lab/</code></td><td>定义机器人探测流程、备份测试用例、同步脚本、报告模板。</td></tr>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>WS 数据流与功能模块</h2>
+      <ul>
+        <li><strong>WebSocket server</strong>（<code>backend/server.js</code>）：接收 <code>hello</code>，广播 <code>status</code>/<code>capabilities</code>/<code>result</code>/<code>ai_result</code>，处理 <code>audio_upload</code>/<code>config_update</code>，并调用 ASR Worker。</li>
+        <li><strong>ASR Worker</strong>：读取音频（逐块缓存、转码）、写入 uploads、调用 Vosk，将结果回送 <code>asr_text</code>。</li>
+        <li><strong>主机/从机</strong>：通过 <code>WsClient</code> 连接；<code>master</code> 在 <code>RobotSDK</code> 中暴露 <code>set_velocity</code>/<code>run_preset</code> 并上传状态/能力。</li>
+        <li><strong>前端控制台</strong>：使用 <code>store.js</code> 存储 WebSocket 状态（logs/results/asr/audio/online）、自动重连并发送 <code>master_config_update</code> 以同步 AI/tts。</li>
+        <li><strong>脚本</strong>：如 <code>scripts/start_full_stack.ps1</code> 一键启动前后端与 master，<code>scripts/run_robot_capability_lab.*</code> 支持机器人能力实验。</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>前端组件分块（路由 + 可选特性）</h2>
+      <ul>
+        <li><code>App.vue</code> 渲染导航栏与 <code>RouterView</code>，只展示 <code>featureConfig</code> 开启的页签。</li>
+        <li><code>router.js</code> 定义 9 条路由：Dashboard、控制、TTS、ASR、AI、音频、日志、设置；\<RouterLink> 生成主导航。</li>
+        <li><code>store.js</code> 统一管理状态，事件驱动更新 logs、results、AI 文本/音频，并提供 preset WS 地址选择。</li>
+        <li>各 View 组件通过 useStore() 订阅状态、发送命令（如 ControlView 调 cmd_vel、TtsView 触发 exec.tts）。</li>
+      </ul>
+    </section>
+
+    <section class="card" id="diagram">
+      <h2>项目结构图（Mermaid）</h2>
+      <div class="mermaid">
+        graph TD
+          Frontend[Frontend<br/>Vue/Vite 控制台]
+          Backend[Backend Server<br/>Node + Vosk ASR]
+          ASR[ASR Worker<br/>`asr_worker.py`]
+          Master[Master Client<br/>`master/client.py`]
+          Slave[Slave Demo Client]
+          Common[Common Tools<br/>`ws_client.py`/`tts_client.py`]
+          Scripts[Scripts<br/>启动/同步/能力实验]
+          Lab[Robot Capability Lab<br/>用例/测试]
+          Frontend -->|WS| Backend
+          Master -->|WS| Backend
+          Slave -->|WS| Backend
+          Backend --> ASR
+          Backend -->|broadcast| Frontend
+          Backend -->|result/status| Master
+          Scripts --> Frontend
+          Scripts --> Backend
+          Scripts --> Master
+          Lab --> Scripts
+          Lab --> Master
+          Common --> Master
+          Common --> Slave
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    说明：这个页面整理至 2026 年 4 月 10 日的项目文件，可直接通过浏览器打开 <code>docs/project-structure.html</code> 查看。
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+</body>
+</html>

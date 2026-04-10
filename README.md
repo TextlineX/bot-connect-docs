@@ -6,6 +6,7 @@
 - `backend/`：WS 中转 + 音频保存 + 本地 Vosk 识别（Python worker）。上传的音频保存在 `backend/uploads/`。
 - `frontend/`：Vue 界面，标签页：连接、运动、TTS、ASR、日志。ASR 页会显示收到的 `asr_text`。
 - `master/`：主机 WS 客户端；自动检测 ROS/TTS，失败则退化为纯 WS 模拟。
+- `docs/master_modules.md`：主机能力模块清单与知识库映射。
 - `slave/`：从机 WS 客户端（纯 WS）。
 - `common/`：WS 客户端公用代码。
 - `asr/`：辅助脚本（`send_mock_audio.py` 发送测试音频；旧版 WS-ASR 可忽略）。
@@ -19,6 +20,18 @@
 .\scripts\start_relay.ps1 -ModelPath "H:\models\vosk-model-small-cn-0.22" -PythonBin "C:\Python314\python.exe" -WsPort 8765 -DevPort 5173
 ```
 效果：起两个窗口 —— `backend/server.js`（含本地 ASR）和 `frontend`（http://<PC_IP>:5173）。前端“连接”页填 WS 地址并点连接即可。
+
+如果想把已实现能力全部打开并一键启动主机模拟客户端：
+```powershell
+.\scripts\start_full_stack.ps1 -MasterModules all -SimMode 1
+```
+效果：起三个窗口 —— `backend`、`frontend`、`master/client.py`。
+
+主机 AI 服务配置写在：
+```powershell
+H:\Project\Bot\bot_connect\config\master_config.json
+```
+其中 `ai.enabled` 控制默认开关，`message` 是 AI 返回 JSON 中必须存在并用于 TTS 播报的字段。
 
 ### PC 本地全模拟（无 ROS）
 1) 起后端 + 前端：同上 `start_relay.ps1`。  
@@ -58,6 +71,7 @@ npm run dev -- --host --port 5173
 - “运动”：线速度/角速度发送 `cmd_vel`。
 - “TTS”：发送 `exec` 动作为 tts。
 - “ASR”：显示后端广播的 `asr_text`。
+- “设置 -> 主机 AI”：运行时启用或关闭主机 AI 解析，并控制 `message` 是否自动 TTS。
 - “日志”：查看 WS 收到/发出的原始消息。
 
 ## 主机/从机客户端
@@ -83,6 +97,7 @@ cd /mnt/h/Project/Bot/bot_connect/master
 export WS_URL=ws://192.168.31.170:8765
 export ROBOT_ID=master-01
 export SIM_MODE=1     # 强制不走 ROS/TTS
+export MASTER_MODULES=all
 python client.py
 ```
 
