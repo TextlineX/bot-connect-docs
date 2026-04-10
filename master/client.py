@@ -36,6 +36,8 @@ if SIM_MODE:
 WS_URL = os.getenv('WS_URL', 'ws://127.0.0.1:8765')
 ROBOT_ID = os.getenv('ROBOT_ID', 'master-01')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
+TTS_SERVICE = os.getenv('TTS_SERVICE', '/aimdk_5Fmsgs/srv/PlayTts')
+AUDIO_TOPIC = os.getenv('AUDIO_TOPIC', '/aima/hal/audio/capture')
 
 class RobotSDK:
     def set_velocity(self, linear: float, angular: float):
@@ -51,6 +53,29 @@ async def on_exec(ws, data):
         text = payload.get('text', '') or '你好，我是灵犀。'
         send_tts(text)
 
+async def capability_loop(ws):
+    """定期上报可用能力（TTS 服务 / 音频话题），便于前端自动启用功能。"""
+    while True:
+        caps = {
+            "type": "capabilities",
+            "robot_id": ROBOT_ID,
+            "ts": time.time(),
+            "payload": {
+                "sim_mode": SIM_MODE,
+                "tts": {
+                    "available": not SIM_MODE,  # 简化：ROS 模式即视为可用
+                    "service": TTS_SERVICE
+                },
+                "topics": {
+                    "audio_capture": AUDIO_TOPIC
+                }
+            }
+        }
+        try:
+            await ws.send(json.dumps(caps))
+        except Exception as e:
+            print("capabilities send error", e)
+        await asyncio.sleep(10)
 
 def on_cmd(data):
     p = data.get('payload', {})
@@ -64,7 +89,8 @@ def status_provider():
 async def main_async():
     client = WsClient(ROBOT_ID, WS_URL, AUTH_TOKEN,
                       on_cmd=on_cmd,
-                      status_provider=status_provider)
+                      status_provider=status_provider,
+                      on_open=capability_loop)
     orig_handle = client.handle_message
     # 延迟导入，便于拆分技能
     try:

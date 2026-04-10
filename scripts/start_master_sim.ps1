@@ -14,9 +14,13 @@ if (-not $scriptDir) { $scriptDir = Split-Path -Parent (Get-Location) }
 $root = Join-Path $scriptDir ".."
 Set-Location $root
 
-# 一键默认配置（可按需改写）
-$env:WS_URL = "ws://192.168.31.170:8765"
-$env:ROBOT_ID = "master-01"
+# 加载自定义配置（config/local.ps1），不存在则用默认
+$cfg = Join-Path $root "config\local.ps1"
+if (Test-Path $cfg) { . $cfg }
+
+# 一键默认配置（可按需改写/覆盖）
+if (-not $env:WS_URL)   { $env:WS_URL   = "ws://127.0.0.1:8765" }
+if (-not $env:ROBOT_ID) { $env:ROBOT_ID = "master-01" }
 
 $env:SIM_MODE = "1"
 

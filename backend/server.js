@@ -16,6 +16,27 @@ const HOST = process.env.WS_HOST || '0.0.0.0';
 const PORT = Number(process.env.WS_PORT || 8765);
 const AUTH_TOKEN = process.env.AUTH_TOKEN || '';
 const PING_INTERVAL = 20000; // ms
+const CONFIG_PATH = path.join(__dirname, 'config.json');
+
+// 加载/保存配置（用于自动 AI 应答 -> TTS）
+function loadConfig() {
+  const def = {
+    auto_ai_reply: false,
+    ai_prefix: '收到：',
+    tts_robot_id: 'master-01',
+  };
+  try {
+    const raw = fs.readFileSync(CONFIG_PATH, 'utf-8');
+    const cfg = JSON.parse(raw);
+    return { ...def, ...cfg };
+  } catch {
+    return def;
+  }
+}
+function saveConfig(cfg) {
+  try { fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2)); } catch (e) { log('save config error', e.message); }
+}
+let config = loadConfig();
 
 // robot_id -> ws
 const clients = new Map();
@@ -105,6 +126,14 @@ function route(fromRid, data) {
     forwardAudioChunks(fromRid, data);
     return;
   }
+  if (data.type === 'config_update') {
+    if (data.payload && typeof data.payload === 'object') {
+      config = { ...config, ...data.payload };
+      saveConfig(config);
+      log('config updated', JSON.stringify(config));
+    }
+    return;
+  }
   if (data.type === 'asr_text') {
     const text = data.text || (data.payload && data.payload.text) || '';
     if (!text || !text.trim()) {
@@ -114,6 +143,24 @@ function route(fromRid, data) {
     }
     log(`asr_text from ${fromRid}: ${text}`);
     for (const [, sock] of clients.entries()) send(sock, data);
+    // 可选：自动 AI 回复 -> TTS
+    if (config.auto_ai_reply) {
+      const ttsText = `${config.ai_prefix || ''}${text}`.trim();
+      const target = config.tts_robot_id || 'master-01';
+      const sock = clients.get(target);
+      if (sock) {
+        send(sock, {
+          type: 'exec',
+          action: 'tts',
+          payload: { text: ttsText },
+          robot_id: target,
+          ts: Date.now() / 1000,
+        });
+        log(`auto TTS -> ${target}: ${ttsText}`);
+      } else {
+        log(`auto TTS target ${target} offline`);
+      }
+    }
     return;
   }
   const target = data.target_robot;

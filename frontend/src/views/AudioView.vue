@@ -35,7 +35,10 @@
         <div class="mini-list">
           <div v-for="(a,idx) in state.audio.slice(0,4)" :key="idx" class="mini-item">
             <span class="dot"></span>
-            <span class="time">{{ a.ts }}</span>
+            <div class="recent-body">
+              <span class="time">{{ a.ts }}</span>
+              <span class="recent-text">{{ formatDetail(a.detail) }}</span>
+            </div>
           </div>
           <div v-if="!state.audio.length" class="hint small">暂无</div>
         </div>
@@ -62,9 +65,10 @@ import { useStore } from '../store'
 const { state, send } = useStore()
 const recording = ref(false)
 const showSettings = ref(false)
-const chunkSeconds = ref(5)
+const chunkSeconds = ref(3) // 默认每 3s 一个分片
 let mediaRecorder = null
 let stream = null
+let pendingFinal = false
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const uploadMessage = ref('准备中')
@@ -89,6 +93,7 @@ async function startRecord() {
       return
     }
     errorMsg.value = ''
+    pendingFinal = false
     stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         channelCount: 1,
@@ -99,7 +104,8 @@ async function startRecord() {
     })
     mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined)
     mediaRecorder.ondataavailable = onChunk
-    mediaRecorder.start(chunkSeconds.value * 1000) // 每 chunkSeconds 一个分片
+    mediaRecorder.onstop = onStop
+    mediaRecorder.start(chunkSeconds.value * 1000) // 按分片时长推流
     recording.value = true
   } catch (e) {
     console.error('录音失败', e)
@@ -110,6 +116,7 @@ async function startRecord() {
 
 function stopRecord() {
   try {
+    pendingFinal = true
     if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop()
     if (stream) stream.getTracks().forEach(t => t.stop())
   } catch (e) { /* ignore */ }
@@ -120,18 +127,23 @@ function stopRecord() {
 
 function onChunk(evt) {
   const blob = evt.data
-  if (!blob || !blob.size || blob.size < 2000) { // 太小当作空
-    return
-  }
+  if (!blob) return
+  const isFinal = pendingFinal
+  if (!isFinal && blob.size < 1024) return
   if (!state.connected) {
     errorMsg.value = '未连接后端，无法发送音频'
     return
   }
   const reader = new FileReader()
   reader.onloadend = () => {
-    chunkAndSend(reader.result, blob.type || 'audio/webm')
+    chunkAndSend(reader.result, blob.type || 'audio/webm', null, isFinal)
   }
   reader.readAsArrayBuffer(blob)
+  pendingFinal = false
+}
+
+function onStop() {
+  pendingFinal = true
 }
 
 function onFile(e) {
@@ -146,7 +158,7 @@ function onFile(e) {
       chunkAndSend(buf, file.type || 'audio/webm', (idx) => {
         uploadProgress.value = Math.min(100, Math.round((idx / total) * 100))
         uploadMessage.value = `分片 ${idx}/${total}`
-      })
+      }, true)
       uploadMessage.value = '完成'
       uploadProgress.value = 100
       setTimeout(() => uploading.value = false, 400)
@@ -169,13 +181,15 @@ function arrayBufferToBase64(buffer) {
 }
 
 const MAX_CHUNK = 512 * 1024 // 512KB
-function chunkAndSend(buffer, mime, onProgress) {
+function chunkAndSend(buffer, mime, onProgress, markFinal=false) {
   const bytes = new Uint8Array(buffer)
   const step = MAX_CHUNK
   let sent = 0
+  const total = Math.ceil(bytes.length / step)
   for (let i = 0; i < bytes.length; i += step) {
     const slice = bytes.subarray(i, i + step)
     const b64 = arrayBufferToBase64(slice.buffer)
+    const isLast = markFinal && (i + step >= bytes.length)
     send({
       type: 'audio_upload',
       robot_id: state.robotId,
@@ -183,12 +197,23 @@ function chunkAndSend(buffer, mime, onProgress) {
       payload: {
         mime: mime || 'audio/webm',
         data: b64,
+        final: isLast,
+        seq: sent + 1,
       },
       ts: Date.now()/1000,
     })
     sent += 1
     if (onProgress) onProgress(sent)
   }
+  state.audio.unshift({ ts: new Date().toLocaleTimeString(), detail: { mime, bytes: bytes.length, final: markFinal } })
+  if (state.audio.length > 200) state.audio.pop()
+}
+
+function formatDetail(detail = {}) {
+  const mime = detail.mime || ''
+  const size = detail.bytes ? `${detail.bytes} bytes` : ''
+  const final = detail.final ? 'final' : ''
+  return [mime, size, final].filter(Boolean).join(' · ') || '已发送'
 }
 </script>
 
@@ -219,18 +244,34 @@ function chunkAndSend(buffer, mime, onProgress) {
   position: relative;
   z-index: 2;
 }
+.wave-button::before,
 .wave-button::after {
-  content: ""; position: absolute; inset: -20%;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    rgba(30,215,96,0.24) 0, rgba(30,215,96,0.24) 12px,
-    transparent 12px, transparent 28px
-  );
-  animation: wave 1.8s linear infinite;
-  opacity: 0.55;
+  content: "";
+  position: absolute;
+  inset: -18%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(30,215,96,0.5), rgba(30,215,96,0.1) 40%, rgba(18,18,18,0) 65%),
+    radial-gradient(circle at 70% 40%, rgba(0,219,255,0.32), rgba(18,18,18,0) 55%),
+    radial-gradient(circle at 50% 70%, rgba(255,109,206,0.26), rgba(18,18,18,0) 60%);
+  background-size: 160% 160%;
+  animation: wave-liquid 6s ease-in-out infinite;
+  opacity: 0.38;
   z-index: 1;
+  pointer-events: none;
 }
-@keyframes wave { from { background-position: 0 0; } to { background-position: 56px 0; } }
+.wave-button::after {
+  animation-duration: 8s;
+  animation-direction: alternate-reverse;
+  opacity: 0.32;
+  filter: blur(1.2px);
+}
+@keyframes wave-liquid {
+  0%   { transform: scale(1) rotate(0deg);   background-position: 0% 0%, 20% 20%, 80% 60%; }
+  25%  { transform: scale(1.02) rotate(2deg); background-position: 15% 10%, 35% 30%, 70% 55%; }
+  50%  { transform: scale(1.05) rotate(4deg); background-position: 30% 20%, 50% 40%, 60% 50%; }
+  75%  { transform: scale(1.02) rotate(2deg); background-position: 45% 30%, 65% 50%, 50% 55%; }
+  100% { transform: scale(1) rotate(0deg);   background-position: 60% 40%, 80% 60%, 40% 50%; }
+}
 
 .floating { position: absolute; z-index: 10; }
 .floating.upload { left: 20px; bottom: 20px; }
@@ -249,7 +290,7 @@ function chunkAndSend(buffer, mime, onProgress) {
 .mini-btn.ghost { background: transparent; }
 
 .mini-card {
-  width: 200px;
+  width: 220px;
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px;
@@ -258,8 +299,10 @@ function chunkAndSend(buffer, mime, onProgress) {
 }
 .mini-head { display:flex; justify-content:space-between; align-items:center; font-size:13px; }
 .mini-list { margin-top:8px; display:grid; gap:6px; }
-.mini-item { display:flex; gap:6px; align-items:center; font-size:12px; color: var(--text); }
-.mini-item .dot { width:6px; height:6px; border-radius:999px; background: var(--accent); }
+.mini-item { display:flex; gap:6px; align-items:flex-start; font-size:12px; color: var(--text); }
+.mini-item .dot { width:6px; height:6px; border-radius:999px; background: var(--accent); margin-top:4px; }
+.recent-body { display:grid; gap:2px; min-width:0; }
+.recent-text { opacity: 0.85; word-break: break-all; }
 .hint.small { font-size:12px; }
 .hint.warn { color: #ff9d76; }
 
@@ -277,7 +320,7 @@ function chunkAndSend(buffer, mime, onProgress) {
   position: absolute;
   top: 40px;
   right: 16px;
-  width: 220px;
+  width: 240px;
   padding: 12px;
   border-radius: 10px;
   background: rgba(24,24,24,0.95);

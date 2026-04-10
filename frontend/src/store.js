@@ -14,6 +14,11 @@ const state = reactive({
   asr: [],           // asr_text
   audio: [],         // 上传/录制记录
   online: {},        // robot_id -> status ts
+  settings: {
+    autoAiReply: false,
+    aiPrefix: '收到：',
+    ttsRobotId: 'master-01',
+  }
 })
 
 const CFG_KEY = 'bot_connect_cfg_v2'
@@ -28,6 +33,7 @@ function loadConfig() {
     state.targetRobot = cfg.targetRobot || state.targetRobot
     state.role = cfg.role || state.role
     state.autoReconnect = cfg.autoReconnect ?? state.autoReconnect
+    state.settings = { ...state.settings, ...(cfg.settings || {}) }
   } catch (e) {
     // ignore parse errors
   }
@@ -40,6 +46,7 @@ function saveConfig() {
     targetRobot: state.targetRobot,
     role: state.role,
     autoReconnect: state.autoReconnect,
+    settings: state.settings,
   }
   localStorage.setItem(CFG_KEY, JSON.stringify(cfg))
 }
