@@ -1,0 +1,9 @@
+/* custom.css - 轻量主题定制 */
+:root {
+  --vp-c-brand-1: #3eaf7c;
+  --vp-c-brand-2: #2e8b57;
+}
+
+.VPHome {
+  padding-bottom: 0;
+}

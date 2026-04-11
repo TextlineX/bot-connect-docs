@@ -1,0 +1,14 @@
+{
+  "name": "bot-connect-docs",
+  "version": "0.1.0",
+  "description": "Bot Connect 文档站",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.3.4",
+    "vue": "^3.4.21"
+  }
+}
