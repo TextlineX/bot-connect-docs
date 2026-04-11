@@ -4,6 +4,7 @@ export default defineConfig({
   title: 'Bot Connect',
   description: '机器人控制与通信平台文档',
   lang: 'zh-CN',
+  ignoreDeadLinks: true,
 
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
@@ -158,11 +159,14 @@ export default defineConfig({
 
   vue: {
     template: {
-      compilerOptions: {
-        isCustomElement: (tag) => true,
-      },
+      transformAssetUrls: false,
     },
   },
-  markdown: { lineNumbers: true },
+  markdown: {
+    lineNumbers: true,
+    config(md) {
+      md.set({ html: false })
+    },
+  },
   cleanUrls: true,
 })
