@@ -14,6 +14,7 @@ if COMMON.as_posix() not in sys.path:
 from ws_client import WsClient
 from role_config import save_role_config
 from runtime import build_runtime
+from action_presets import canonical_action, resolve_preset
 
 ROLE_STATE, config_provider, on_config_sync = build_runtime(
     "slave",
@@ -162,15 +163,16 @@ def _do_preset(name: str, motion_id=None, area_id=None, interrupt=False) -> dict
 
 def on_exec(data):
     payload = data.get("payload", {})
-    action = payload.get("action") or data.get("action")
-    action = str(action or "").strip()
-    if action in ("tts", "voice.tts"):
+    raw_action = payload.get("action") or data.get("action")
+    raw_action = str(raw_action or "").strip()
+    action = canonical_action(raw_action)
+    if action == "voice.tts":
         text = payload.get("text") or payload.get("message") or "你好，我是从机。"
         result = _do_tts(str(text))
         result.update({"module": "slave", "action": "voice.tts", "text": text})
         return result
 
-    if action in ("motion.move", "cmd_vel", "move"):
+    if action == "motion.move":
         sdk.set_velocity(payload.get("linear", 0), payload.get("angular", 0))
         return {
             "ok": True,
@@ -180,17 +182,55 @@ def on_exec(data):
             "payload": payload,
         }
 
-    if action in ("preset.run", "dance", "wave", "handshake"):
-        name = payload.get("name") or payload.get("preset") or action
-        motion_id = payload.get("motion_id")
-        area_id = payload.get("area_id")
-        interrupt = bool(payload.get("interrupt", False))
-        res = _do_preset(str(name), motion_id=motion_id, area_id=area_id, interrupt=interrupt)
+    if action == "motion.stop":
+        sdk.set_velocity(0, 0)
+        return {
+            "ok": True,
+            "detail": "motion stop ok",
+            "module": "slave",
+            "action": "motion.stop",
+            "payload": {"linear": 0, "angular": 0},
+        }
+
+    if action == "preset.run":
+        preset = resolve_preset(raw_action, payload)
+        if not preset:
+            print(f"[SLAVE EXEC] unsupported preset raw={raw_action} payload={payload}")
+            return {
+                "ok": False,
+                "detail": f"unsupported preset: {raw_action}",
+                "module": "slave",
+                "action": "preset.run",
+                "payload": payload,
+            }
+        res = _do_preset(
+            str(preset["name"]),
+            motion_id=preset["motion_id"],
+            area_id=preset["area_id"],
+            interrupt=preset["interrupt"],
+        )
         res.update({
             "module": "slave",
             "action": "preset.run",
-            "payload": {"name": name, "motion_id": motion_id, "area_id": area_id, "interrupt": interrupt},
+            "detail": f"{res.get('detail')} | {preset['label']}",
+            "payload": {
+                "name": preset["name"],
+                "motion_id": preset["motion_id"],
+                "area_id": preset["area_id"],
+                "interrupt": preset["interrupt"],
+                "label": preset["label"],
+                "raw_action": raw_action,
+            },
         })
+        print(
+            "[SLAVE EXEC] preset",
+            f"raw={raw_action}",
+            f"name={preset['name']}",
+            f"motion_id={preset['motion_id']}",
+            f"area_id={preset['area_id']}",
+            f"interrupt={preset['interrupt']}",
+            f"ok={res.get('ok')}",
+        )
         return res
 
     print("[SLAVE EXEC] unsupported", data)

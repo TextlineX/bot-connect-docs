@@ -78,7 +78,7 @@ MODULE_CATALOG = {
     },
 }
 
-DEFAULT_MODULES = ("voice", "motion", "audio_asr")
+DEFAULT_MODULES = ("voice", "motion", "audio_asr", "action_router", "ai_assistant")
 
 
 def resolve_module_names(raw: str | None = None) -> list[str]:

@@ -1,15 +1,50 @@
 """
 Simple ASR handler for master: decode base64 PCM, feed Vosk, return text.
 Env:
-  MODEL_PATH: path to Vosk model (default H:\\models\\vosk-model-small-cn-0.22)
+  MODEL_PATH: path to Vosk model
 Assumes audio is 16k mono s16le (backend已转码).
 """
 import base64
 import os
 import json
+import re
+from pathlib import Path
 from vosk import Model, KaldiRecognizer
 
-MODEL_PATH = os.getenv("MODEL_PATH", r"H:\\models\\vosk-model-small-cn-0.22")
+
+def _normalize_model_path(value: str) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return raw
+    if os.name != "nt":
+        match = re.match(r"^([A-Za-z]):[\\/](.*)$", raw)
+        if match:
+            drive = match.group(1).lower()
+            rest = match.group(2).replace("\\", "/")
+            return f"/mnt/{drive}/{rest}"
+    return raw
+
+
+def _resolve_model_path() -> str:
+    root = Path(__file__).resolve().parents[1]
+    candidates = []
+    env_path = _normalize_model_path(os.getenv("MODEL_PATH", ""))
+    if env_path:
+        candidates.append(Path(env_path))
+    candidates.extend([
+        Path(_normalize_model_path(r"H:\models\vosk-model-small-cn-0.22")),
+        Path("/mnt/h/models/vosk-model-small-cn-0.22"),
+        root / "models" / "vosk-model-small-cn-0.22",
+    ])
+    for candidate in candidates:
+        if candidate.is_dir():
+            return str(candidate)
+    searched = ", ".join(str(p) for p in candidates)
+    raise FileNotFoundError(f"未找到 Vosk 模型目录，请设置 MODEL_PATH。已尝试: {searched}")
+
+
+MODEL_PATH = _resolve_model_path()
+print(f"[master asr] MODEL_PATH={MODEL_PATH}")
 _model = Model(MODEL_PATH)
 _rec = KaldiRecognizer(_model, 16000)
 

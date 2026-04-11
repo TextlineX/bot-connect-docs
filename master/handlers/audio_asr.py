@@ -31,11 +31,15 @@ class AudioAsrModule(MasterModule):
         if data.get("type") != "audio_upload" or not self.context.handle_audio_upload:
             return False
 
-        text = await self.context.handle_audio_upload(data)
+        text = self.context.handle_audio_upload(data)
+        if hasattr(text, "__await__"):
+            text = await text
         payload = data.get("payload", {})
+        source_robot_id = data.get("source_robot_id") or data.get("robot_id") or self.context.robot_id
+        source_role = data.get("source_role")
         reply = {
             "type": "asr_text",
-            "robot_id": self.context.robot_id,
+            "robot_id": source_robot_id,
             "ts": time.time(),
             "text": text or "",
             "detail": "from master/audio_upload",
@@ -43,9 +47,12 @@ class AudioAsrModule(MasterModule):
             "seq": payload.get("seq"),
             "final": payload.get("final", False),
             "module": self.name,
+            "source_robot_id": source_robot_id,
+            "source_role": source_role,
+            "handler_robot_id": self.context.robot_id,
         }
         try:
-            await ws.send(json.dumps(reply))
+            await ws.send(json.dumps(reply, ensure_ascii=False))
         except Exception:
             pass
         return True

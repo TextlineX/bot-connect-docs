@@ -3,113 +3,7 @@ import json
 import time
 
 from .base import MasterModule
-
-PRESET_DEFS = {
-    "wave": {"name": "wave", "motion_id": 1002, "area_id": 2, "label": "右手挥手"},
-    "wave_left": {"name": "wave_left", "motion_id": 1002, "area_id": 1, "label": "左手挥手"},
-    "handshake": {"name": "handshake", "motion_id": 1003, "area_id": 2, "label": "右手握手"},
-    "handshake_left": {
-        "name": "handshake_left",
-        "motion_id": 1003,
-        "area_id": 1,
-        "label": "左手握手",
-    },
-    "raise_hand": {"name": "raise_hand", "motion_id": 1001, "area_id": 2, "label": "右手举手"},
-    "raise_hand_left": {
-        "name": "raise_hand_left",
-        "motion_id": 1001,
-        "area_id": 1,
-        "label": "左手举手",
-    },
-    "kiss": {"name": "kiss", "motion_id": 1004, "area_id": 2, "label": "右手飞吻"},
-    "kiss_left": {"name": "kiss_left", "motion_id": 1004, "area_id": 1, "label": "左手飞吻"},
-    "salute": {"name": "salute", "motion_id": 1013, "area_id": 2, "label": "右手敬礼"},
-    "salute_left": {"name": "salute_left", "motion_id": 1013, "area_id": 1, "label": "左手敬礼"},
-    "clap": {"name": "clap", "motion_id": 3017, "area_id": 11, "label": "鼓掌"},
-    "cheer": {"name": "cheer", "motion_id": 3011, "area_id": 11, "label": "加油"},
-    "bow": {"name": "bow", "motion_id": 3001, "area_id": 11, "label": "鞠躬"},
-    "dance": {"name": "dance", "motion_id": 3007, "area_id": 11, "label": "动感光波"},
-}
-
-ACTION_ALIASES = {
-    "tts": "voice.tts",
-    "say": "voice.tts",
-    "speak": "voice.tts",
-    "说话": "voice.tts",
-    "播报": "voice.tts",
-    "move": "motion.move",
-    "move_forward": "motion.move",
-    "move_backward": "motion.move",
-    "turn_left": "motion.move",
-    "turn_right": "motion.move",
-    "前进": "motion.move",
-    "后退": "motion.move",
-    "左转": "motion.move",
-    "右转": "motion.move",
-    "stop": "motion.stop",
-    "halt": "motion.stop",
-    "停止": "motion.stop",
-    "刹车": "motion.stop",
-    "wave": "preset.run",
-    "handshake": "preset.run",
-    "raise_hand": "preset.run",
-    "kiss": "preset.run",
-    "salute": "preset.run",
-    "clap": "preset.run",
-    "cheer": "preset.run",
-    "bow": "preset.run",
-    "dance": "preset.run",
-    "挥手": "preset.run",
-    "握手": "preset.run",
-    "举手": "preset.run",
-    "飞吻": "preset.run",
-    "敬礼": "preset.run",
-    "鼓掌": "preset.run",
-    "加油": "preset.run",
-    "鞠躬": "preset.run",
-    "跳舞": "preset.run",
-}
-
-PRESET_ALIASES = {
-    "wave": "wave",
-    "挥手": "wave",
-    "右手挥手": "wave",
-    "wave_left": "wave_left",
-    "left_wave": "wave_left",
-    "左手挥手": "wave_left",
-    "handshake": "handshake",
-    "握手": "handshake",
-    "右手握手": "handshake",
-    "handshake_left": "handshake_left",
-    "left_handshake": "handshake_left",
-    "左手握手": "handshake_left",
-    "raise_hand": "raise_hand",
-    "举手": "raise_hand",
-    "右手举手": "raise_hand",
-    "raise_hand_left": "raise_hand_left",
-    "left_raise_hand": "raise_hand_left",
-    "左手举手": "raise_hand_left",
-    "kiss": "kiss",
-    "飞吻": "kiss",
-    "右手飞吻": "kiss",
-    "kiss_left": "kiss_left",
-    "left_kiss": "kiss_left",
-    "左手飞吻": "kiss_left",
-    "salute": "salute",
-    "敬礼": "salute",
-    "右手敬礼": "salute",
-    "salute_left": "salute_left",
-    "left_salute": "salute_left",
-    "左手敬礼": "salute_left",
-    "clap": "clap",
-    "鼓掌": "clap",
-    "cheer": "cheer",
-    "加油": "cheer",
-    "bow": "bow",
-    "鞠躬": "bow",
-    "dance": "dance",
-    "跳舞": "dance",
-}
+from action_presets import ACTION_ALIASES, PRESET_DEFS, canonical_action, resolve_preset
 
 
 class ActionRouterModule(MasterModule):
@@ -233,8 +127,7 @@ class ActionRouterModule(MasterModule):
             return
 
     def _canonical_action(self, action: str) -> str:
-        value = str(action or "").strip()
-        return ACTION_ALIASES.get(value, value)
+        return canonical_action(action)
 
     def _resolve_motion_payload(self, action: str, payload: dict):
         linear = self._to_float(payload.get("linear"), 0)
@@ -261,29 +154,7 @@ class ActionRouterModule(MasterModule):
         return linear, angular
 
     def _resolve_preset_payload(self, action: str, payload: dict) -> dict | None:
-        motion_id = self._to_int(payload.get("motion_id"))
-        area_id = self._to_int(payload.get("area_id"))
-        interrupt = self._to_bool(payload.get("interrupt"), False)
-        name = str(
-            payload.get("name")
-            or payload.get("preset")
-            or payload.get("action_name")
-            or payload.get("keyword")
-            or action
-        ).strip()
-        if motion_id is not None and area_id is not None:
-            return {
-                "name": name or "custom",
-                "motion_id": motion_id,
-                "area_id": area_id,
-                "interrupt": interrupt,
-                "label": name or "custom",
-            }
-        preset_name = PRESET_ALIASES.get(name)
-        if not preset_name:
-            return None
-        preset = PRESET_DEFS[preset_name]
-        return {**preset, "interrupt": interrupt}
+        return resolve_preset(action, payload)
 
     def _to_float(self, value, default: float) -> float:
         try:

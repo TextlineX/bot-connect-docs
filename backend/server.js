@@ -630,6 +630,19 @@ function forwardMergedAudio(fromRid, buffer, mime, target, session = null, seq =
     log(`target ${target} offline, drop merged audio_upload`);
     return;
   }
+  let nextMime = mime || 'audio/webm';
+  let nextBuffer = buffer;
+  // master 侧 ASR 目前只吃 16k mono s16le PCM，这里统一转码，避免前端录音格式影响识别链路。
+  if ((sock._role || guessRole(target)) === 'master' && !isRawPcmMime(nextMime)) {
+    const pcmB64 = transcodeToPcm(buffer.toString('base64'), nextMime);
+    if (pcmB64) {
+      nextBuffer = Buffer.from(pcmB64, 'base64');
+      nextMime = 'audio/raw;rate=16000;channels=1;format=S16_LE';
+      log(`forward audio transcoded for ${target}: ${mime || 'unknown'} -> ${nextMime} (${nextBuffer.length} bytes)`);
+    } else {
+      log(`forward audio transcode failed for ${target}, keep original mime=${nextMime}`);
+    }
+  }
   send(sock, {
     type: 'audio_upload',
     robot_id: fromRid,
@@ -639,8 +652,8 @@ function forwardMergedAudio(fromRid, buffer, mime, target, session = null, seq =
     target_role: sock._role || guessRole(target),
     config_version: Number(config.version || 0),
     payload: {
-      mime: mime || 'audio/webm',
-      data: buffer.toString('base64'),
+      mime: nextMime,
+      data: nextBuffer.toString('base64'),
       final,
       session,
       seq,

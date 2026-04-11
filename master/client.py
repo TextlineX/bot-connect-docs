@@ -1,147 +1,303 @@
 #!/usr/bin/env python3
-# 主机客户端：自动检测 ROS/TTS；不可用则退化为模拟模式
-import os
-import time
-import sys
 import asyncio
 import json
+import os
+import sys
+import time
 from pathlib import Path
+
+from websockets.exceptions import ConnectionClosed
 
 ROOT = Path(__file__).resolve().parents[1]
 COMMON = ROOT / "common"
-HANDLERS = ROOT / "master" / "handlers"
-for p in (COMMON, HANDLERS):
-  if p.as_posix() not in sys.path:
-    sys.path.insert(0, p.as_posix())
+MASTER_DIR = ROOT / "master"
+HANDLERS = MASTER_DIR / "handlers"
+for candidate in (ROOT, COMMON, MASTER_DIR, HANDLERS):
+    if candidate.as_posix() not in sys.path:
+        sys.path.insert(0, candidate.as_posix())
 
+from runtime import build_runtime
 from ws_client import WsClient
+from master.handlers.base import MasterContext
+from master.handlers.registry import build_modules, module_catalog
 
 SIM_MODE = os.getenv("SIM_MODE", "0") == "1"
 send_tts = None
 tts_shutdown = None
+run_preset = None
+preset_shutdown = None
 
 if not SIM_MODE:
-  try:
-    from tts_client import send_tts, shutdown as tts_shutdown  # type: ignore
-    print("[master] ROS/TTS 模式")
-  except Exception as e:
-    print(f"[master] ROS/TTS 不可用，切换模拟模式: {e}")
-    SIM_MODE = True
+    try:
+        from tts_client import send_tts, shutdown as tts_shutdown  # type: ignore
+
+        print("[master] ROS/TTS 模式")
+    except Exception as exc:
+        print(f"[master] ROS/TTS 不可用，切换模拟模式: {exc}")
+        SIM_MODE = True
+
+if not SIM_MODE:
+    try:
+        from preset_motion_client import run_preset, shutdown as preset_shutdown  # type: ignore
+
+        print("[master] 预设动作服务已连接")
+    except Exception as exc:
+        print(f"[master] preset motion 不可用，回退到 stub: {exc}")
 
 if SIM_MODE:
-  print("[master] SIM 模式（仅 WS，不调用 ROS/TTS）")
+    print("[master] SIM 模式（仅 WS，不调用 ROS/TTS）")
 
-  def send_tts(text: str):
-    print(f"[SIM TTS] {text}")
-    return True
+    def send_tts(text: str):
+        print(f"[SIM TTS] {text}")
+        return True
 
-  def tts_shutdown():
-    pass
+    def tts_shutdown():
+        pass
+
+if run_preset is None:
+
+    def run_preset(name: str, motion_id: int | None = None, area_id: int | None = None, interrupt: bool = False):
+        if SIM_MODE:
+            print(
+                "[SIM PRESET]",
+                f"name={name}",
+                f"motion_id={motion_id}",
+                f"area_id={area_id}",
+                f"interrupt={interrupt}",
+            )
+            return True
+        print(
+            "[master] preset runner unavailable",
+            f"name={name}",
+            f"motion_id={motion_id}",
+            f"area_id={area_id}",
+        )
+        return False
+
+if preset_shutdown is None:
+
+    def preset_shutdown():
+        pass
+
+
+def merge_dict(base: dict, extra: dict) -> dict:
+    for key, value in (extra or {}).items():
+        if isinstance(base.get(key), dict) and isinstance(value, dict):
+            base[key] = {**base[key], **value}
+        else:
+            base[key] = value
+    return base
+
+
+ROLE_STATE, config_provider, on_config_sync = build_runtime(
+    "master",
+    {
+        "robot_id": "master-01",
+        "config_version": 0,
+    },
+)
 
 WS_URL = os.getenv("WS_URL", "ws://127.0.0.1:8765")
-ROBOT_ID = os.getenv("ROBOT_ID", "master-01")
+ROBOT_ID = os.getenv("ROBOT_ID", str(ROLE_STATE.get("robot_id") or "master-01"))
+ROLE_STATE["robot_id"] = ROBOT_ID
 AUTH_TOKEN = os.getenv("AUTH_TOKEN")
 TTS_SERVICE = os.getenv("TTS_SERVICE", "/aimdk_5Fmsgs/srv/PlayTts")
 AUDIO_TOPIC = os.getenv("AUDIO_TOPIC", "/aima/hal/audio/capture")
+START_TS = time.time()
+STATUS_HOOK = os.getenv("MASTER_STATUS_HOOK", "master.status_hook_example")
 
 
 class RobotSDK:
-  def set_velocity(self, linear: float, angular: float):
-    print(f"[MASTER SDK] set_velocity linear={linear} angular={angular}")
+    def __init__(self):
+        self.last_velocity = {"linear": 0.0, "angular": 0.0, "at": None}
+        self.last_preset = {"name": "", "motion_id": None, "area_id": None, "at": None}
 
-  def status(self):
-    return {"ts": time.time()}
+    def set_velocity(self, linear: float, angular: float):
+        self.last_velocity = {
+            "linear": float(linear),
+            "angular": float(angular),
+            "at": time.time(),
+        }
+        print(f"[MASTER SDK] set_velocity linear={linear} angular={angular}")
+
+    def run_preset(
+        self,
+        name: str,
+        motion_id: int | None = None,
+        area_id: int | None = None,
+        interrupt: bool = False,
+    ):
+        ok = run_preset(name, motion_id=motion_id, area_id=area_id, interrupt=interrupt)
+        if ok:
+            self.last_preset = {
+                "name": name,
+                "motion_id": motion_id,
+                "area_id": area_id,
+                "at": time.time(),
+            }
+        return ok
+
+    def status(self):
+        now = time.time()
+        elapsed = now - START_TS
+        last_motion_at = self.last_velocity.get("at")
+        last_preset_at = self.last_preset.get("at")
+        last_action_at = max(last_motion_at or 0, last_preset_at or 0) or None
+        return {
+            "ts": now,
+            "system": {
+                "hostname": os.getenv("COMPUTERNAME") or os.getenv("HOSTNAME") or "master-local",
+                "ws_url": WS_URL,
+                "sim_mode": SIM_MODE,
+                "local_test": True,
+                "runtime_label": "本地模拟" if SIM_MODE else "本地真机桥接",
+                "uptime_sec": round(elapsed, 1),
+            },
+            "motion": {
+                "linear": self.last_velocity.get("linear", 0.0),
+                "angular": self.last_velocity.get("angular", 0.0),
+                "last_preset": self.last_preset.get("name") or "",
+                "last_motion_id": self.last_preset.get("motion_id"),
+                "last_area_id": self.last_preset.get("area_id"),
+                "last_command_age_sec": round(now - last_action_at, 1) if last_action_at else None,
+            },
+            "audio": {
+                "tts_ready": bool(send_tts),
+                "asr_bridge_ready": bool(handle_audio_upload),
+                "tts_service": TTS_SERVICE,
+                "audio_topic": AUDIO_TOPIC,
+            },
+        }
 
 
 sdk = RobotSDK()
 
 
-async def on_exec(ws, data):
-  payload = data.get("payload", {})
-  if payload.get("action") == "tts":
-    text = payload.get("text", "") or "你好，我是灵犀。"
-    send_tts(text)
+def load_status_hook():
+    path = (STATUS_HOOK or "").strip()
+    if not path:
+        return None
+    try:
+        module = __import__(path, fromlist=["get_status"])
+        return getattr(module, "get_status", None)
+    except Exception as exc:
+        print(f"[master] status hook load failed: {exc}")
+        return None
+
+
+status_hook = load_status_hook()
+
+try:
+    from audio_upload_handler import handle_audio_upload
+except Exception as exc:
+    print(f"[master] audio_upload_handler unavailable: {exc}")
+    handle_audio_upload = None
+
+context = MasterContext(
+    robot_id=ROBOT_ID,
+    sim_mode=SIM_MODE,
+    tts_service=TTS_SERVICE,
+    audio_topic=AUDIO_TOPIC,
+    sdk=sdk,
+    send_tts=send_tts,
+    handle_audio_upload=handle_audio_upload,
+)
+modules, enabled_module_names = build_modules(context)
+module_map = {module.name: module for module in modules}
+context.motion_module = module_map.get("motion")
+context.voice_module = module_map.get("voice")
+action_router = module_map.get("action_router")
+if action_router:
+    context.execute_action = action_router.execute_action
+print(f"[master] enabled modules: {', '.join(enabled_module_names) or 'none'}")
+
+
+def build_capability_payload() -> dict:
+    payload = {
+        "sim_mode": SIM_MODE,
+        "enabled_modules": enabled_module_names,
+        "module_catalog": module_catalog(),
+    }
+    for module in modules:
+        merge_dict(payload, module.capabilities())
+    return payload
 
 
 async def capability_loop(ws):
-  """定期上报可用能力（TTS 服务 / 音频话题），便于前端自动启用功能。"""
-  while True:
-    caps = {
-      "type": "capabilities",
-      "robot_id": ROBOT_ID,
-      "ts": time.time(),
-      "payload": {
-        "sim_mode": SIM_MODE,
-        "tts": {
-          "available": not SIM_MODE,
-          "service": TTS_SERVICE,
-        },
-        "topics": {
-          "audio_capture": AUDIO_TOPIC,
-        },
-      },
-    }
-    try:
-      await ws.send(json.dumps(caps))
-    except Exception as e:
-      print("capabilities send error", e)
-    await asyncio.sleep(10)
-
-
-def on_cmd(data):
-  p = data.get("payload", {})
-  sdk.set_velocity(p.get("linear", 0), p.get("angular", 0))
+    while True:
+        caps = {
+            "type": "capabilities",
+            "robot_id": ROBOT_ID,
+            "ts": time.time(),
+            "payload": build_capability_payload(),
+        }
+        try:
+            await ws.send(json.dumps(caps, ensure_ascii=False))
+        except ConnectionClosed:
+            break
+        except Exception as exc:
+            print("capabilities send error", exc)
+        await asyncio.sleep(10)
 
 
 def status_provider():
-  return {"role": "master", **sdk.status()}
+    base = {
+        "role": "master",
+        "config_version": config_provider().get("config_version", 0),
+        "enabled_modules": enabled_module_names,
+        "modules": {module.name: module.status() for module in modules},
+        **sdk.status(),
+    }
+    if status_hook:
+        try:
+            extra = status_hook(sdk) or {}
+            if isinstance(extra, dict):
+                base = merge_dict(base, extra)
+        except Exception as exc:
+            print(f"[master] status hook error: {exc}")
+    return base
 
 
 async def main_async():
-  client = WsClient(
-    ROBOT_ID,
-    WS_URL,
-    AUTH_TOKEN,
-    on_cmd=on_cmd,
-    status_provider=status_provider,
-    on_open=capability_loop,
-  )
-  orig_handle = client.handle_message
+    client = WsClient(
+        ROBOT_ID,
+        WS_URL,
+        AUTH_TOKEN,
+        status_provider=status_provider,
+        on_open=capability_loop,
+        role="master",
+        config_provider=config_provider,
+        on_config_sync=on_config_sync,
+        verbose=True,
+    )
+    default_handle = client.handle_message
 
-  try:
-    from audio_upload_handler import handle_audio_upload
-  except Exception:
-    handle_audio_upload = None
+    async def wrapped_handle(ws, data):
+        handled = False
+        for module in modules:
+            result = module.handle(ws, data)
+            if asyncio.iscoroutine(result):
+                result = await result
+            handled = handled or bool(result)
+        # config_sync 需要继续走默认处理，给后端发送 ack。
+        if data.get("type") == "config_sync":
+            await default_handle(ws, data)
+            return
+        if handled:
+            return
+        await default_handle(ws, data)
 
-  async def wrapped_handle(ws, data):
-    if data.get("type") == "exec":
-      await on_exec(ws, data)
-    elif data.get("type") == "audio_upload" and handle_audio_upload:
-      text = await handle_audio_upload(data)
-      reply = {
-        "type": "asr_text",
-        "robot_id": ROBOT_ID,
-        "ts": time.time(),
-        "text": text or "",
-        "detail": "from master/audio_upload",
-      }
-      try:
-        await ws.send(json.dumps(reply))
-      except Exception:
-        pass
-    else:
-      await orig_handle(ws, data)
-
-  client.handle_message = wrapped_handle
-  try:
-    await client.run()
-  finally:
-    tts_shutdown()
+    client.handle_message = wrapped_handle
+    try:
+        await client.run()
+    finally:
+        preset_shutdown()
+        tts_shutdown()
 
 
 def main():
-  asyncio.run(main_async())
+    asyncio.run(main_async())
 
 
 if __name__ == "__main__":
-  main()
+    main()

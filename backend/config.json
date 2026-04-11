@@ -1,6 +1,6 @@
 {
-  "version": 4,
-  "updated_at": "2026-04-10T14:51:39.057Z",
+  "version": 11,
+  "updated_at": "2026-04-11T02:47:30.624Z",
   "frontend": {
     "controller_robot_id": "controller",
     "role": "controller",
@@ -20,6 +20,7 @@
       "showAI": true,
       "showAudio": true,
       "showLogs": true,
+      "showMonitor": true,
       "showSettings": true,
       "showDashboard": true
     }
@@ -34,8 +35,8 @@
     "ai": {
       "enabled": true,
       "auto_tts": true,
-      "allow_action_execution": false,
-      "forward_action_to_slave": false,
+      "allow_action_execution": true,
+      "forward_action_to_slave": true,
       "forward_action_target": "slave-01",
       "tts_target_robot": "slave-01",
       "trigger_on_partial": false,

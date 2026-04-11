@@ -3,9 +3,10 @@ set -euo pipefail
 
 # WSL 下同步到机器人，使用 Windows 路径时自动转换为 /mnt/ 前缀
 # 用法：
-#   ./scripts/sync_to_robot_wsl.sh agi@192.168.88.88:/agibot/data/home/agi/bot_connect
+#   ./scripts/sync_to_robot_wsl.sh user@host:/remote/path
 # 可选：
 #   SRC=/mnt/h/Project/Bot/bot_connect ./scripts/sync_to_robot_wsl.sh user@host:/path
+#   ./scripts/sync_to_robot_wsl.sh agi@192.168.88.88:/agibot/data/home/agi/bot_connect
 
 DEST="${1:-}"
 if [ -z "$DEST" ]; then
