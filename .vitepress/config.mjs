@@ -156,6 +156,13 @@ export default defineConfig({
     },
   },
 
+  vue: {
+    template: {
+      compilerOptions: {
+        isCustomElement: (tag) => true,
+      },
+    },
+  },
   markdown: { lineNumbers: true },
   cleanUrls: true,
 })
