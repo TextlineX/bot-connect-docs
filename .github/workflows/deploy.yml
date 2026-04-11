@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Build Docs
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,12 +23,3 @@ jobs:
 
       - name: Build VitePress
         run: npm run build
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: bot-connect-docs
-          directory: .vitepress/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
