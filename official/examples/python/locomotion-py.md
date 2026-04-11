@@ -5,6 +5,7 @@
 进入稳定站立模式后执行本程序
     
     
+```python
       1#!/usr/bin/env python3
       2
       3import rclpy
@@ -213,3 +214,4 @@
     206
     207if __name__ == '__main__':
     208    main()
+```
