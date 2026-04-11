@@ -26,6 +26,9 @@ PRESET_DEFS = {
 }
 
 ACTION_ALIASES = {
+    "start_dance": "preset.run",
+    "start_dancing": "preset.run",
+    "dance_start": "preset.run",
     "tts": "voice.tts",
     "say": "voice.tts",
     "speak": "voice.tts",
@@ -117,6 +120,9 @@ PRESET_ALIASES = {
     "bow": "bow",
     "鞠躬": "bow",
     "dance": "dance",
+    "start_dance": "dance",
+    "start_dancing": "dance",
+    "dance_start": "dance",
     "跳舞": "dance",
 }
 

@@ -4,6 +4,10 @@ import math
 import os
 import sys
 import time
+import signal
+import subprocess
+import shutil
+import atexit
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,6 +18,7 @@ if COMMON.as_posix() not in sys.path:
 from ws_client import WsClient
 from role_config import save_role_config
 from runtime import build_runtime
+from stream_info import build_stream_urls
 from action_presets import canonical_action, resolve_preset
 
 ROLE_STATE, config_provider, on_config_sync = build_runtime(
@@ -34,6 +39,11 @@ ROLE_STATE["robot_id"] = ROBOT_ID
 AUTH_TOKEN = os.getenv("AUTH_TOKEN")
 SIM_MODE = os.getenv("SIM_MODE", "1") == "1"
 START_TS = time.time()
+MEDIAMTX_PROC = None
+RELAY_PROC = None
+MJPEG_PROCS: list[subprocess.Popen] = []
+STREAM_MODE = os.getenv("STREAM_MODE", "rtsp").lower()  # rtsp | http_mjpeg
+STREAM_PRESETS: list[dict] = []
 
 try:
     import rclpy  # type: ignore
@@ -52,6 +62,130 @@ try:
     from preset_motion_client import run_preset as ros_run_preset  # type: ignore
 except Exception:
     ros_run_preset = None
+
+
+def stop_stream_stack():
+    global MEDIAMTX_PROC, RELAY_PROC, MJPEG_PROCS
+    procs = [RELAY_PROC, MEDIAMTX_PROC] + MJPEG_PROCS
+    for proc in procs:
+        if proc and proc.poll() is None:
+            try:
+                proc.terminate()
+            except Exception:
+                pass
+    for proc in procs:
+        if proc and proc.poll() is None:
+            try:
+                proc.wait(timeout=3)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+    MEDIAMTX_PROC = None
+    RELAY_PROC = None
+    MJPEG_PROCS = []
+
+
+def start_stream_stack():
+    """自动拉起推流栈，默认开启，缺依赖会自动跳过。"""
+    global MEDIAMTX_PROC, RELAY_PROC, MJPEG_PROCS, STREAM_PRESETS
+    if os.getenv("STREAM_AUTOSTART", "1").lower() not in {"1", "true", "yes"}:
+        return
+
+    if STREAM_MODE == "http_mjpeg":
+        host = os.getenv("STREAM_PUBLIC_HOST") or build_stream_urls(default_name=ROBOT_ID).get("host") or "127.0.0.1"
+        base_port = int(os.getenv("STREAM_HTTP_BASE", "8000"))
+        topics_env = os.getenv("STREAM_TOPICS")
+        topics = [t for t in (topics_env.split(",") if topics_env else []) if t.strip()]
+        if not topics:
+            topics = [
+                "/aima/hal/sensor/rgb_head_rear/rgb_image/compressed",
+                "/aima/hal/sensor/stereo_head_front_left/rgb_image/compressed",
+                "/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed",
+                "/aima/hal/sensor/rgbd_head_front/rgb_image/compressed",
+            ]
+        STREAM_PRESETS = []
+        port = base_port
+        for topic in topics:
+            cmd = [
+                sys.executable,
+                str(ROOT / "scripts" / "mjpeg_http_server.py"),
+                "--topic",
+                topic,
+                "--host",
+                "0.0.0.0",
+                "--port",
+                str(port),
+            ]
+            try:
+                proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                MJPEG_PROCS.append(proc)
+                url = f"http://{host}:{port}/stream.mjpg"
+                STREAM_PRESETS.append({"topic": topic, "url": url, "label": topic.split("/")[-2] if "/" in topic else topic})
+                print(f"[STREAM] mjpeg started: {topic} -> {url}")
+            except Exception as exc:
+                print(f"[STREAM] mjpeg start failed ({topic}): {exc}")
+            port += 1
+        return
+
+    mediamtx_bin = os.getenv("MEDIAMTX_BIN", "mediamtx")
+    ffmpeg_bin = os.getenv("FFMPEG_BIN", "ffmpeg")
+    stream = build_stream_urls(default_name=ROBOT_ID)
+    rtsp_url = stream.get("rtsp_url") or f"rtsp://127.0.0.1:8554/{ROBOT_ID}"
+    topic = os.getenv("STREAM_TOPIC", "/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed")
+    qos_rel = os.getenv("STREAM_QOS_RELIABILITY", "best_effort")
+    qos_dur = os.getenv("STREAM_QOS_DURABILITY", "volatile")
+    qos_depth = os.getenv("STREAM_QOS_DEPTH", "5")
+    input_format = os.getenv("STREAM_INPUT_FORMAT", "mjpeg")
+
+    mediamtx_path = shutil.which(mediamtx_bin)
+    if mediamtx_path and MEDIAMTX_PROC is None:
+        try:
+            MEDIAMTX_PROC = subprocess.Popen(
+                [mediamtx_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            print(f"[STREAM] mediamtx started: {mediamtx_path}")
+        except Exception as exc:
+            print(f"[STREAM] mediamtx start failed: {exc}")
+
+    relay_cmd = [
+        sys.executable,
+        str(ROOT / "scripts" / "camera_rtsp_relay.py"),
+        "--ros-args",
+        "-p",
+        f"topic:={topic}",
+        "-p",
+        f"rtsp_url:={rtsp_url}",
+        "-p",
+        f"ffmpeg_bin:={ffmpeg_bin}",
+        "-p",
+        f"input_format:={input_format}",
+        "-p",
+        f"qos_reliability:={qos_rel}",
+        "-p",
+        f"qos_durability:={qos_dur}",
+        "-p",
+        f"qos_depth:={qos_depth}",
+    ]
+    if RELAY_PROC is None:
+        try:
+            RELAY_PROC = subprocess.Popen(
+                relay_cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            print(f"[STREAM] relay started: {topic} -> {rtsp_url}")
+        except Exception as exc:
+            print(f"[STREAM] relay start failed: {exc}")
+
+
+def register_cleanup():
+    atexit.register(stop_stream_stack)
+    signal.signal(signal.SIGTERM, lambda *_: (stop_stream_stack(), sys.exit(0)))
+    signal.signal(signal.SIGINT, lambda *_: (stop_stream_stack(), sys.exit(0)))
 
 
 class RobotSDK:
@@ -94,6 +228,13 @@ class RobotSDK:
         elapsed = now - START_TS
         last_move_at = self.last_velocity.get("at")
         battery_ratio = round(0.8 - min(elapsed / 36000, 0.15), 2)
+        streams = build_stream_urls(default_name=ROBOT_ID)
+        if STREAM_PRESETS:
+            streams["presets"] = STREAM_PRESETS
+            if not streams.get("auto_url") and len(STREAM_PRESETS) > 0:
+                streams["auto_url"] = STREAM_PRESETS[0].get("url")
+        if STREAM_MODE == "http_mjpeg":
+            streams["preferred_player"] = "mjpg"
         return {
             "ts": now,
             "battery": battery_ratio,
@@ -123,6 +264,7 @@ class RobotSDK:
                 "motor_temp_c": round(34 + 2.5 * math.sin(elapsed / 8.0), 1),
                 "posture": "tracking",
             },
+            "streams": streams,
         }
 
 
@@ -252,6 +394,8 @@ def status_provider():
 
 
 def main():
+    register_cleanup()
+    start_stream_stack()
     save_role_config("slave", ROLE_STATE)
     client = WsClient(
         ROBOT_ID,

@@ -7,6 +7,7 @@ export const featureConfig = {
   showASR: true,
   showAI: true,
   showAudio: true,
+  showMonitor: true,
   showLogs: true,
   showSettings: true,
 }

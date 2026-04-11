@@ -124,10 +124,83 @@ source /agibot/data/home/agi/aimdk/install/setup.bash
 export WS_URL=ws://<PC_IP>:8765
 export ROBOT_ID=slave-01
 export ROBOT_ROLE=slave
-python robot/client.py
+# 默认会同时打开视频流（mediamtx + camera_rtsp_relay），如需关闭设 STREAM_ENABLE=0
+# 若摄像头话题输出 H.264 压缩帧，设 STREAM_INPUT_FORMAT=h264
+export STREAM_ENABLE=1
+python robot/client.py   # 或直接 ./scripts/start_slave.sh（已内置推流）
 ```
 
 - 从机配置会落盘到 `config/slave_config.json`。
+
+### 从机摄像头实时流（RTSP + WebRTC）
+- 适用场景：机器人从机把 ROS 2 相机话题发布成 `RTSP`，再由 `MediaMTX` 自动转成浏览器可播放的 `WebRTC/WHEP`。
+- 新增脚本：
+  - `scripts/camera_rtsp_relay.py`：订阅 `sensor_msgs/msg/CompressedImage` 并推到 RTSP。
+  - `scripts/start_slave_camera_stream.sh`：一键启动 `MediaMTX + RTSP relay`。
+- 运行前准备：
+  ```bash
+  source /opt/ros/humble/setup.bash
+  source /agibot/data/home/agi/aimdk/install/setup.bash
+  ```
+- 需要安装的依赖：
+  - Python：只需要项目原本的 `websockets`
+  - 系统二进制：`ffmpeg`、`mediamtx`
+  - ROS 环境：`rclpy`、`sensor_msgs`（通常随 ROS 2 / AIMDK 提供）
+- Python 依赖安装：
+  ```bash
+  python3 -m pip install -U pip
+  python3 -m pip install websockets
+  ```
+- `ffmpeg` 安装（Ubuntu / Debian）：
+  ```bash
+  sudo apt update
+  sudo apt install -y ffmpeg
+  ffmpeg -version
+  ```
+- `MediaMTX` 安装：
+  - 到官方 Releases 页面下载对应架构的压缩包
+  - 常见架构：`amd64` / `arm64` / `armv7`
+  - 解压并安装到 PATH，例如：
+  ```bash
+  mkdir -p ~/opt/mediamtx
+  tar -xzf mediamtx_<版本>_linux_<架构>.tar.gz -C ~/opt/mediamtx
+  sudo install ~/opt/mediamtx/mediamtx /usr/local/bin/mediamtx
+  mediamtx --version
+  ```
+- 第一次执行建议补权限：
+  ```bash
+  cd /agibot/data/home/agi/bot_connect
+  chmod +x scripts/start_slave_camera_stream.sh
+  ```
+- 最小启动：
+  ```bash
+  cd /agibot/data/home/agi/bot_connect
+  export ROBOT_ID=slave-01
+  export STREAM_PUBLIC_HOST=<机器人IP>
+  export STREAM_TOPIC=/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed
+  ./scripts/start_slave_camera_stream.sh   # 或直接使用 ./scripts/start_slave.sh（默认开启推流）
+  ```
+- 默认输出：
+  - RTSP：`rtsp://<机器人IP>:8554/slave-01`
+  - WebRTC 页面：`http://<机器人IP>:8889/slave-01`
+  - WHEP：`http://<机器人IP>:8889/slave-01/whep`
+  - HLS：`http://<机器人IP>:8888/slave-01/index.m3u8`
+- 其他常用源：
+  ```bash
+  export STREAM_TOPIC=/aima/hal/sensor/rgb_head_rear/rgb_image/compressed
+  export STREAM_TOPIC=/aima/hal/sensor/rgbd_head_front/rgb_image/compressed
+  export STREAM_QOS_RELIABILITY=reliable   # RGB-D 推荐
+  ```
+- 常用环境变量：
+  - `STREAM_PUBLIC_HOST`：前端访问流时使用的机器人 IP，建议显式设置
+  - `STREAM_TOPIC`：相机话题
+  - `STREAM_NAME`：流名称，默认跟 `ROBOT_ID` 一致
+  - `STREAM_RTSP_PORT`：默认 `8554`
+  - `STREAM_WEBRTC_PORT`：默认 `8889`
+  - `STREAM_HLS_PORT`：默认 `8888`
+  - `STREAM_QOS_RELIABILITY`：通常 `best_effort`；`rgbd_head_front` 建议 `reliable`
+- 前端监控页现在会优先读取机器人 `status.payload.streams` 里上报的默认 `WHEP` 地址；如果监控输入框留空，会自动显示从机默认 WebRTC 画面。
+- 想随从机自动拉起推流，可在启动从机时加：`export STREAM_AUTOSTART=1`（使用 `slave/client.py` 内置拉起 mediamtx + relay）
 
 ---
 ## 常见排查
@@ -138,3 +211,9 @@ python robot/client.py
   2) `TTS_SERVICE` 是否匹配；
   3) 已 source ROS 环境。
 - 前端连不上：确认 `node server.js` 在跑、Windows 防火墙放行 8765、`WS_URL` IP 正确。
+- WebRTC 无画面：
+  1) 先用 `ffplay rtsp://<机器人IP>:8554/<stream_name>` 确认 RTSP 已有图；
+  2) 确认 `STREAM_PUBLIC_HOST` 填的是前端机器能访问到的机器人 IP；
+  3) 确认 `8889/tcp` 与 `8189/udp`（如启用 TCP fallback 也包含 `8189/tcp`）未被防火墙拦截；
+  4) 若使用 RGB-D，相机订阅建议设置 `STREAM_QOS_RELIABILITY=reliable`。
+  5) `ffmpeg -version` 和 `mediamtx --version` 都能正常执行。

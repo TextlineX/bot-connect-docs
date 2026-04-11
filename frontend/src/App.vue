@@ -39,6 +39,7 @@ function featureEnabled(name) {
     '控制': 'showControl',
     'TTS': 'showTTS',
     'ASR': 'showASR',
+    'AI': 'showAI',
     '音频': 'showAudio',
     '监控': 'showMonitor',
     '日志': 'showLogs',

@@ -1,13 +1,13 @@
 {
   "robot_id": "master-01",
-  "config_version": 11,
+  "config_version": 20,
   "ai": {
     "enabled": true,
     "auto_tts": true,
     "allow_action_execution": true,
     "forward_action_to_slave": true,
     "forward_action_target": "slave-01",
-    "behavior_lock_enabled": true,
+    "behavior_lock_enabled": false,
     "behavior_lock_timeout_sec": 20,
     "trigger_on_partial": false,
     "listen_robot_ids": [],
@@ -29,6 +29,6 @@
     "extra_body": {},
     "retry_attempts": 3,
     "retry_backoff_sec": 0.5,
-    "system_prompt": "你是机器人主机的语音指令解析助手。必须返回一个 JSON 对象。JSON 中必须包含字符串字段 message，用于 TTS 播报。可以包含 intent、action、params、keywords、confidence、reason 等任意自定义字段。不要输出 JSON 之外的任何文本。"
+    "system_prompt": "你是机器人主机的语音指令解析助手。必须返回且只返回一个 JSON 对象，禁止输出 JSON 之外的任何文本。字段要求：\\n- message（必填）：给用户的文字回复，用于 TTS。\\n- action（可选）：只能是以下之一：voice.tts | motion.move | motion.stop | preset.run。\\n- params：与 action 对应：\\n  * voice.tts: {text:string}\\n  * motion.move: {linear:number, angular:number}\\n  * motion.stop: {}\\n  * preset.run: {name:string, interrupt?:bool}，其中 name 仅限：wave, wave_left, handshake, handshake_left, raise_hand, raise_hand_left, kiss, kiss_left, salute, salute_left, clap, cheer, bow, dance。\\n若无法匹配动作，请设 action 为 null，仅回复 message。不得自创动作名或参数字段。"
   }
 }

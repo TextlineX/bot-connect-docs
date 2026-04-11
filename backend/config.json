@@ -1,6 +1,6 @@
 {
-  "version": 11,
-  "updated_at": "2026-04-11T02:47:30.624Z",
+  "version": 20,
+  "updated_at": "2026-04-11T11:36:56.980Z",
   "frontend": {
     "controller_robot_id": "controller",
     "role": "controller",
@@ -40,7 +40,7 @@
       "forward_action_target": "slave-01",
       "tts_target_robot": "slave-01",
       "trigger_on_partial": false,
-      "behavior_lock_enabled": true,
+      "behavior_lock_enabled": false,
       "behavior_lock_timeout_sec": 20
     }
   },

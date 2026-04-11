@@ -92,7 +92,10 @@
           <label>AI TTS 目标 robot_id</label>
           <input v-model="state.settings.masterAiTtsTarget" placeholder="slave-01" />
         </div>
-        <div class="hint">行为锁开启后，上一次 AI 产生的 slave 请求未返回 result 前，新的 ASR/AI 动作会被跳过。</div>
+        <div class="hint">
+          行为锁开启后，上一次 AI 产生的 slave 请求未返回 result 前，新的 ASR/AI 动作会被跳过。
+          开关对应 config/master_config.json 与 backend/config.json → master.ai.* 字段。
+        </div>
         <button class="primary" @click="syncAllConfig">保存并同步全部配置</button>
       </div>
 
@@ -121,6 +124,16 @@
         <div class="field row">
           <label><input type="checkbox" v-model="state.settings.uiAutoScroll" /> 自动滚动日志/ASR</label>
         </div>
+        <div class="divider"></div>
+        <div class="field row switch-line" v-for="flag in featureFlagList" :key="flag.key">
+          <label>{{ flag.label }}</label>
+          <button class="toggle-btn" :class="{on: state.featureFlags[flag.key] !== false}" @click="toggleFeatureFlag(flag.key)">
+            <span class="knob"></span>
+          </button>
+        </div>
+        <div class="hint">
+          显隐开关会写入 backend/config.json → frontend.feature_flags.*，前端导航与面板按此锁定/隐藏。
+        </div>
         <button class="primary" @click="syncAllConfig">保存并同步全部配置</button>
       </div>
     </div>
@@ -131,6 +144,18 @@
 import { useStore } from '../store'
 
 const { state, pushConfigSync } = useStore()
+
+const featureFlagList = [
+  { key: 'showDashboard', label: '仪表盘' },
+  { key: 'showAI', label: 'AI 面板' },
+  { key: 'showControl', label: '控制面板' },
+  { key: 'showASR', label: 'ASR 面板' },
+  { key: 'showTTS', label: 'TTS 面板' },
+  { key: 'showAudio', label: '音频区块' },
+  { key: 'showMonitor', label: '监控区块' },
+  { key: 'showLogs', label: '日志区块' },
+  { key: 'showSettings', label: '设置入口' },
+]
 
 function toggleAi() {
   state.settings.autoAiReply = !state.settings.autoAiReply
@@ -152,6 +177,9 @@ function toggleMasterAiLock() {
 }
 function toggleReconnect() {
   state.autoReconnect = !state.autoReconnect
+}
+function toggleFeatureFlag(key) {
+  state.featureFlags[key] = state.featureFlags[key] === false ? true : !state.featureFlags[key]
 }
 
 function syncAllConfig() {
@@ -191,4 +219,10 @@ function syncAllConfig() {
   box-shadow: 0 6px 18px rgba(30,215,96,0.35);
 }
 .toggle-btn.on .knob { transform: translateX(30px); background: #fff; }
+.divider {
+  height: 1px;
+  width: 100%;
+  margin: 12px 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+}
 </style>
