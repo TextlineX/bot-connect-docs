@@ -48,7 +48,3 @@ footer:
   message: 本文档基于 AGIBOT X2 平台构建
   copyright: MIT License
 ---
-
-<div style="text-align:center; padding: 2rem 0; color: #666;">
-  <p>📡 项目代码托管于 <strong>Gitee 私有仓库</strong> | 📖 文档托管于 <strong>Cloudflare Pages</strong></p>
-</div>
