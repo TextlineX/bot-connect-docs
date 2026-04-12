@@ -1,22 +1,47 @@
-# 拆分示例索引
+# Python 示例总览
 
-- [6.1.1 获取机器人模式](6.1.1_获取机器人模式.md)
-- [6.1.2 设置机器人模式](6.1.2_设置机器人模式.md)
-- [6.1.3 设置机器人动作](6.1.3_设置机器人动作.md)
-- [6.1.4 夹爪控制](6.1.4_夹爪控制.md)
-- [6.1.5 灵巧手控制](6.1.5_灵巧手控制.md)
-- [6.1.6 注册二开输入源](6.1.6_注册二开输入源.md)
-- [6.1.7 获取当前输入源](6.1.7_获取当前输入源.md)
-- [6.1.8 控制机器人走跑](6.1.8_控制机器人走跑.md)
-- [6.1.9 关节电机控制](6.1.9_关节电机控制.md)
-- [6.1.10 键盘控制机器人](6.1.10_键盘控制机器人.md)
-- [6.1.11 拍照](6.1.11_拍照.md)
-- [6.1.12 相机推流示例集](6.1.12_相机推流示例集.md)
-- [6.1.13 头部触摸传感器数据订阅](6.1.13_头部触摸传感器数据订阅.md)
-- [6.1.14 激光雷达数据订阅](6.1.14_激光雷达数据订阅.md)
-- [6.1.15 播放视频](6.1.15_播放视频.md)
-- [6.1.16 媒体文件播放](6.1.16_媒体文件播放.md)
-- [6.1.17 TTS (文字转语音)](6.1.17_TTS_文字转语音.md)
-- [6.1.18 麦克风数据接收](6.1.18_麦克风数据接收.md)
-- [6.1.19 表情控制](6.1.19_表情控制.md)
-- [6.1.20 LED灯带控制](6.1.20_LED灯带控制.md)
+这组示例适合快速验证接口、做脚手架开发和查阅最小可运行用法。
+
+## 构建与运行
+
+```bash
+source /opt/ros/humble/setup.bash
+colcon build
+source install/setup.bash
+ros2 run py_examples 对应功能名称
+```
+
+## 控制类
+
+- [获取机器人模式](/official/examples/python/robot-mode-get)
+- [设置机器人模式](/official/examples/python/robot-mode-set)
+- [设置机器人动作](/official/examples/python/robot-action-set)
+- [夹爪控制](/official/examples/python/gripper)
+- [灵巧手控制](/official/examples/python/hand)
+- [注册二开输入源](/official/examples/python/input-register)
+- [获取当前输入源](/official/examples/python/input-get)
+- [控制机器人走跑](/official/examples/python/locomotion)
+- [关节电机控制](/official/examples/python/joint)
+- [键盘控制机器人](/official/examples/python/motion-keyboard)
+
+## 感知类
+
+- [拍照](/official/examples/python/camera-photo)
+- [相机推流示例集](/official/examples/python/camera-stream)
+- [头部触摸传感器数据订阅](/official/examples/python/touch-sensor)
+- [激光雷达数据订阅](/official/examples/python/lidar)
+
+## 交互类
+
+- [播放视频](/official/examples/python/video-playback)
+- [媒体文件播放](/official/examples/python/media-playback)
+- [TTS（文字转语音）](/official/examples/python/tts)
+- [麦克风数据接收](/official/examples/python/microphone)
+- [表情控制](/official/examples/python/emoji)
+- [LED 灯带控制](/official/examples/python/led)
+
+## 说明
+
+- 官方示例偏向接口演示，不一定直接适合生产环境
+- 跨板通信场景建议补充超时、重试和状态检查
+- 需要对照实现时，可同时打开 [C++ 示例总览](/official/examples/cpp/)
