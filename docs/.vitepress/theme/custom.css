@@ -7,3 +7,19 @@
 .VPHome {
   padding-bottom: 0;
 }
+
+/* 首页底部提示 */
+.VPHome .VPFeatures {
+  position: relative;
+}
+
+.VPHome .VPFeatures::after {
+  content: '📡 项目代码托管于 Gitee 私有仓库 | 📖 文档托管于 Cloudflare Pages';
+  display: block;
+  text-align: center;
+  padding: 2rem 2rem 0;
+  color: #888;
+  font-size: 0.875rem;
+  border-top: 1px solid var(--vp-c-divider);
+  margin-top: 2rem;
+}
