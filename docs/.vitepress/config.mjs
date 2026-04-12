@@ -358,7 +358,8 @@ export default defineConfig({
   markdown: {
     lineNumbers: true,
     config(md) {
-      md.set({ html: false })
+      // 允许 Markdown 中的内联 HTML，用于首页提示等自定义块
+      md.set({ html: true })
     },
   },
   cleanUrls: true,
